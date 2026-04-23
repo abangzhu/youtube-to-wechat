@@ -1,0 +1,23 @@
+{
+  "skill_name": "youtube-to-wechat",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "为 https://www.youtube.com/watch?v=v3Fr2JR47KA 生成一篇微信公众号",
+      "expected_output": "完整的微信公众号文章，内容覆盖 MCP 协议 18 个月演进、三层连接性框架、Progressive Discovery 和 Programmatic Tool Calling 两项改进、REST to MCP 反模式批评、2026 年 6 月路线图（无状态协议、跨应用访问、服务器自动发现等）。文章无 Markdown 标题/列表，无冒号破折号双引号，无 AI 腔词语，结尾有来源注记。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我把这个播客整理成公众号文章：https://www.youtube.com/watch?v=yUohoaC8_Hs",
+      "expected_output": "完整的微信公众号文章，内容覆盖「建设者」vs「信息搬运工」划分、影子超能力概念、喜悦时刻作为转型起点、蒲公英种子意象、smiling exhaustion。人物背景交代 Nikhyl Singhal（Skip 社区、Meta/Google 高管）和 Lenny Rachitsky（Lenny's Podcast）。文章无结构违规，中文表达自然，无翻译腔。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "把这篇文章转成微信公众号格式：https://www.anthropic.com/news/claude-4",
+      "expected_output": "完整的微信公众号文章，内容提炼文章核心论点，自然带出作者/机构背景，无 Markdown 结构违规，结尾有来源注记（原文链接格式）。",
+      "files": []
+    }
+  ]
+}
