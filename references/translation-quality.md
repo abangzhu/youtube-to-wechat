@@ -1,4 +1,56 @@
-# 英译中翻译质量手册
+# 英译中翻译与本地化手册
+
+这份文件负责英文来源、机器中文字幕和本地化改写后的中文稿。目标有两层：先保证原文没有走样，再把中文改到自然可读。它适用于 `bilingual-transcript.md`、`transcript.md` 和最终文章的本地化复查。
+
+微信公众号成文规则（结构、开头、来源交代、标点、引号、加粗、标题）统一看 [wechat-writing-rules.md](wechat-writing-rules.md)。
+
+---
+
+## 处理层级
+
+### 一、忠实翻译层
+
+用于 `bilingual-transcript.md`。目标是让用户能逐段核查原文含义，不能为了顺口而压缩、删改或重组内容。
+
+| 情形 | 处理方式 | 示例 |
+|------|----------|------|
+| 技术术语 | 保留英文 | microVM、PR、Agent、Session、plan mode、diff、merge conflict、live preview、terminal、commit message |
+| 产品名 / 工具名 | 保留英文 | ACE、GitHub Next、Copilot、Slack、Jira、Linear、VS Code |
+| 首次出现的缩写 | 展开全称后括号注英文 | 拉取请求（Pull Request，PR） |
+| 口语化俚语 / 脏话 | 意译，保留语气，不直译 | "department of f*** around and find out" → 「边试边学、大胆探索部门」 |
+| 新造词 / 演讲者自创表达 | 中文意译 + 括号保留英文 | 「社交信息织物（social information fabric）」 |
+| 普通口语停顿（"uh"、"um"）| 不必译出，但内容不能删 | — |
+
+保持原文的时间戳拆分方式，多段不合并。忠实原意，不美化、不压缩、不省略实质性内容。
+
+### 二、本地化整理层
+
+用于 `transcript.md` 和 `article.md`。目标是让中文读者读起来不费劲，但仍能追溯原文意思。
+
+| 情形 | 处理方式 | 示例 |
+|------|----------|------|
+| 有通用中文译法的专有名词 | 译文（原文） | 产品经理（Product Manager） |
+| 缩写首次出现 | 译文（全拼） | 首席产品官（Chief Product Officer，CPO） |
+| 缩写再次出现 | 直接用缩写 | CPO |
+| 无合适中文译法 / 中文比英文更陌生 | 保留英文 | vibe coding、Agent、Eval |
+| 俚语和口语 | 意译，不直译 | "going upstream" → 逆流而上，不是「去上游」 |
+| 英文句式痕迹 | 改写为自然汉语 | 被动句改主动，长定语从句拆成两句，避免名词堆砌 |
+
+### 三、指南和官方文档层
+
+官方文档、产品指南、技术规范、操作手册不能压缩成摘要。这类内容的价值在具体说明、参数细节和示例里。原文有几条建议就翻几条，原文有示例就保留并翻译。
+
+英文 prompt 示例、代码块或官方模板必须中英文对照，放在同一个代码块内。英文在上，空行分隔，中文在下。
+
+```
+Ask for clarification only when the missing information would materially change the answer.
+
+只在缺失信息会实质性地改变答案时才请求澄清。
+```
+
+---
+
+## 翻译腔排查方法
 
 转录整理（Step 1）和文章评估（Step 6）各做一次全文通读排查。
 

@@ -11,9 +11,13 @@
         {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
         {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
         {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
+        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
+        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
         {"text": "article.md 末尾包含「内容来源」字样的来源注记"},
         {"text": "article.md 正文字数不少于 800 字（含标点，不含标题和来源行）"},
         {"text": "article.md 中明确提到 MCP 协议（或 Model Context Protocol）"},
+        {"text": "article.md 自然交代来源，但不能频繁用演讲者转述推动全文"},
+        {"text": "article.md 中核心英文术语首次出现时有中文锚点或必要解释"},
         {"text": "transcript.md 文件存在于输出目录"},
         {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"}
       ]
@@ -28,9 +32,13 @@
         {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
         {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
         {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
+        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
+        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
         {"text": "article.md 末尾包含「内容来源」字样的来源注记"},
         {"text": "article.md 正文字数不少于 800 字"},
         {"text": "article.md 中提到主要嘉宾姓名（Nikhyl Singhal 或相关变体）"},
+        {"text": "article.md 自然交代来源，但不能频繁用嘉宾或主播转述推动全文"},
+        {"text": "article.md 中核心英文概念首次出现时有中文锚点或必要解释"},
         {"text": "transcript.md 文件存在于输出目录"},
         {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"}
       ]
@@ -45,9 +53,28 @@
         {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
         {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
         {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
+        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
+        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
         {"text": "article.md 末尾包含「内容来源」字样，且来源注记中包含 anthropic.com 链接"},
         {"text": "article.md 正文字数不少于 600 字（网页文章可能比视频文章短）"},
         {"text": "article.md 中提到 Claude（或 Claude 4 等变体）"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "把这篇官方指南改成微信公众号文章：https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices",
+      "expected_output": "完整的微信公众号文章，不能把官方指南压缩成泛泛摘要；需要保留原文关键建议、参数细节和示例。英文 prompt 示例或代码块必须中英文对照放在同一个代码块内，文章无 Markdown 结构违规、无 AI 腔，结尾有来源注记。",
+      "files": [],
+      "assertions": [
+        {"text": "article.md 文件存在于输出目录"},
+        {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
+        {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
+        {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
+        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
+        {"text": "article.md 保留原文关键 prompt 示例或代码块，而不是全部改写成二手概括"},
+        {"text": "英文 prompt 示例或代码块在同一个代码块内提供中文参考译文"},
+        {"text": "article.md 末尾包含「内容来源」字样，且来源注记中包含 docs.anthropic.com 链接"},
+        {"text": "transcript.md 文件存在于输出目录，且不是只包含摘要要点"}
       ]
     }
   ]
