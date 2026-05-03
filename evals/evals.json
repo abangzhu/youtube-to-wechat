@@ -19,7 +19,12 @@
         {"text": "article.md 自然交代来源，但不能频繁用演讲者转述推动全文"},
         {"text": "article.md 中核心英文术语首次出现时有中文锚点或必要解释"},
         {"text": "transcript.md 文件存在于输出目录"},
-        {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"}
+        {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"},
+        {"text": "bilingual-transcript.md 中 it/they/this/that/here/there 以及 thing/stuff/component 等泛指表达已按上下文还原，不能机械直译为「这里」「那里」「东西」「组件」"},
+        {"text": "bilingual-transcript.md 中关键术语可核查原意；有成熟中文译法时可采用「中文（English）」格式，产品名、工具名和 UI 标签可保留英文"},
+        {"text": "transcript.md 中有成熟中文译法的技术术语优先使用通用译法，不能无判断保留英文"},
+        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致演讲者、公司、产品或系统混淆"},
+        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑译成互不相干的并列句"}
       ]
     },
     {
@@ -40,7 +45,12 @@
         {"text": "article.md 自然交代来源，但不能频繁用嘉宾或主播转述推动全文"},
         {"text": "article.md 中核心英文概念首次出现时有中文锚点或必要解释"},
         {"text": "transcript.md 文件存在于输出目录"},
-        {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"}
+        {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"},
+        {"text": "bilingual-transcript.md 中 it/they/this/that/here/there 以及 thing/stuff/component 等泛指表达已按上下文还原，不能机械直译为「这里」「那里」「东西」「组件」"},
+        {"text": "bilingual-transcript.md 中关键英文概念可核查原意；有成熟中文译法时可采用「中文（English）」格式，产品名、工具名和 UI 标签可保留英文"},
+        {"text": "transcript.md 中有成熟中文译法的英文概念优先使用中文锚点，不能无判断保留英文"},
+        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致嘉宾、主播、公司、产品或系统混淆"},
+        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑译成互不相干的并列句"}
       ]
     },
     {
@@ -57,7 +67,10 @@
         {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
         {"text": "article.md 末尾包含「内容来源」字样，且来源注记中包含 anthropic.com 链接"},
         {"text": "article.md 正文字数不少于 600 字（网页文章可能比视频文章短）"},
-        {"text": "article.md 中提到 Claude（或 Claude 4 等变体）"}
+        {"text": "article.md 中提到 Claude（或 Claude 4 等变体）"},
+        {"text": "article.md 和 transcript.md 中官方术语翻译前后一致，有成熟中文译法的术语使用中文锚点"},
+        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致 Anthropic、Claude、模型或用户混淆"},
+        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑改写成互不相干的并列句"}
       ]
     },
     {
@@ -74,7 +87,35 @@
         {"text": "article.md 保留原文关键 prompt 示例或代码块，而不是全部改写成二手概括"},
         {"text": "英文 prompt 示例或代码块在同一个代码块内提供中文参考译文"},
         {"text": "article.md 末尾包含「内容来源」字样，且来源注记中包含 docs.anthropic.com 链接"},
-        {"text": "transcript.md 文件存在于输出目录，且不是只包含摘要要点"}
+        {"text": "transcript.md 文件存在于输出目录，且不是只包含摘要要点"},
+        {"text": "官方指南中的术语翻译前后一致，有成熟中文译法的术语使用中文锚点"},
+        {"text": "示例和关键建议翻译后不能因本地化改写丢失条件、限制或操作对象"},
+        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致 Anthropic、Claude、开发者或模型混淆"},
+        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑改写成互不相干的并列句"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "把下面这段英文整理成本地化中文转录 transcript.md，并按 youtube-to-wechat 的翻译质量规则自查：I think some aspects of continual learning, long-horizon reasoning, and memory are still unsolved. Demis co-founded DeepMind with one mission: solve intelligence. AlphaFold, a system that solved the 50-year protein folding problem, changed biology. I am confident the components you mentioned will be part of the final AGI architecture. Maybe current systems can scale to get to there, but there may be one or two big ideas left to crack. The brain does experience replay during REM sleep. DQN mastered Atari through experience replay. The current approach is brute force: tape together the solution by putting everything into the context window, even though every decision still has a cost to find the relevant item. If we compare the context window to human working memory, the gap is obvious. Today, many thinking modes and chain of thought techniques can be traced back to AlphaGo. One of our biggest strengths is distilling these capabilities into smaller models, and we have to serve the largest AI surfaces like Search AI Overviews, AI Mode, the Gemini app, and Gemini across Google products.",
+      "expected_output": "输出 transcript.md，要求中文自然、本地化准确，显性处理主语切换、上下文指代、成熟术语译法、同位语拆分、类比因果、整段逻辑和中文搭配。",
+      "files": [],
+      "assertions": [
+        {"text": "transcript.md 文件存在于输出目录"},
+        {"text": "transcript.md 中 continual learning、long-horizon reasoning 和 memory 仍未解决这句主语清楚，不能只写成「这些问题仍然没有解决」导致判断主体不明"},
+        {"text": "transcript.md 中把 solve intelligence 处理为「解决人工智能」，不能写成「解决智能」"},
+        {"text": "transcript.md 中主语切换清楚，DeepMind 使命处应显性表达为「公司的使命」或等价说法"},
+        {"text": "transcript.md 中 AlphaFold 的同位语说明被拆开表达，不能写成「蛋白质结构预测这个生物学中持续 50 年的重大难题」这类长定语压句"},
+        {"text": "transcript.md 中 components 按 AGI 架构语境译为「关键要素」或等价说法，不能机械译为「组件」"},
+        {"text": "transcript.md 中 get to there 按上下文还原，不能出现「达到那里」"},
+        {"text": "transcript.md 中不能出现「攻克想法」或「攻克的大想法」，应表达为「攻克难题」或等价说法"},
+        {"text": "transcript.md 中 experience replay 译为「经验回放」，不能裸留英文"},
+        {"text": "transcript.md 中 brute force 译为「粗暴」或「原始粗暴」，不能写成「现在的方法很 brute force」"},
+        {"text": "transcript.md 中 context window 译为「上下文窗口」，working memory 译为「工作记忆」"},
+        {"text": "transcript.md 中 today 表示现阶段或如今，不能机械译成「今天」"},
+        {"text": "transcript.md 中 thinking modes 译为「思考模式」，chain of thought 译为「推理链条」"},
+        {"text": "transcript.md 中不能出现「最大的强项」；have to serve 应译为「需要服务」或语气相当的中文，不能机械译为「必须服务」"},
+        {"text": "transcript.md 中 DQN 与大脑 REM 的类比关系清楚，不能只写成互不相干的并列句"},
+        {"text": "transcript.md 中保留胶带拼方案、把所有内容塞进上下文窗口、查找相关信息有成本之间的完整逻辑，不能翻成碎句"}
       ]
     }
   ]
