@@ -71,9 +71,22 @@ yt-dlp --write-auto-sub --sub-lang en --skip-download \
 
 **常见错误**：如果报 "Sign in to confirm you're not a bot"，加 `--cookies-from-browser chrome` 参数（需本地已登录 Chrome）。
 
-**方法二：Chrome DevTools MCP（yt-dlp 失败时的备用路径）**
+**方法二：tactiq.io 网页转录（yt-dlp 被 SABR 或 PO Token 拦住时的首选）**
 
-遇到 SABR 限制（报 `Some web client https formats have been skipped` 或 `Requested format is not available`），切换到备用路径。完整步骤见 [references/youtube-transcript-fallback.md](references/youtube-transcript-fallback.md)。
+yt-dlp 报 `Requested format is not available`、`PO Token was not provided` 或 `Some web client https formats have been skipped` 等错误时，说明 YouTube 的流量限制绕不过去，但字幕本身可能还在。优先切到 tactiq.io：
+
+1. 用 Chrome DevTools MCP 打开 `https://tactiq.io/tools/run/youtube_transcript?yt={URL_ENCODED_YOUTUBE_URL}`
+2. 等 3-5 秒让 tactiq 后台拉字幕
+3. `evaluate_script` 取 `document.querySelector('#transcript').innerText`
+4. 拿到的是「时间戳 + 文本」每两行一对的格式，直接保存为 `full_transcript_en.txt` 或 `_zh.txt`
+
+这条路 90% 情况下几秒内就能搞定。完整脚本和失败处理见 [references/youtube-transcript-fallback.md](references/youtube-transcript-fallback.md)。
+
+**方法三：Chrome DevTools MCP fetch 拦截器（tactiq 也失败但视频确实有字幕时用）**
+
+如果 tactiq 的 `#transcript` 为空而 YouTube 播放器显示字幕可用，走 Chrome DevTools MCP 在页面上注入 fetch 拦截器、再点击 Show transcript 的路径。步骤和脚本见同一份 fallback 文档。
+
+**视频真的没有字幕的处理**：如果 YouTube 播放器直接显示 "Subtitles/closed captions unavailable"，所有免费路径都会失效（tactiq、youtubetranscript、downsub 全部依赖 YouTube 原生字幕）。此时用 `AskUserQuestion` 让用户选：基于二手媒体报道成文、等 24-48 小时 YouTube 自动生成字幕、用户自备转录文件、换视频。不要静默降级。处理细则见 fallback 文档最后一节。
 
 #### A.2 解析 VTT 字幕文件
 
@@ -249,12 +262,15 @@ python scripts/parse_vtt.py "字幕文件目录路径"
 
 ### 4.2 成文方式
 
-写 `article.md` 时按 [references/wechat-writing-rules.md](references/wechat-writing-rules.md) 执行，尤其注意四件事：
+写 `article.md` 时按 [references/wechat-writing-rules.md](references/wechat-writing-rules.md) 执行，尤其注意这几件事：
 
 1. 文章正文不要用 Markdown 标题、列表、表格；`article.md` 第一行的 `# 标题` 是唯一例外
-2. 开头尽快自然交代来源、人物身份和核心问题，但不要写成节目推荐
-3. 视频或原文是素材来源，不是正文主角；不要频繁用「他说」「他提到」「这期视频里」推动段落
-4. 每段尽量有具体的人、事、数字、场景或原话，避免空洞断言
+2. 开头三段按固定节奏写。第一段直接给具体场景、数字或判断，不写人物简历；第二段再交代人是谁、公司背景、可信度锚点；第三段锁定文章要回答的问题。不要第一句就介绍人物。
+3. 视频或原文是素材来源，不是正文主角；不要频繁用「他说」「他提到」「这期视频里」推动段落，也不要加「X 对这件事评价挺复杂」这类只承担转场功能的空句
+4. 每段尽量有具体的人、事、数字、场景或原话，避免空洞断言。能量化的地方就量化，不用「大幅提升」「显著下降」这种模糊词
+5. 如果文章超过 2000 字，适当使用 `**完整短句**` 形式的章节标题分段；不要用冷名词作章节标题
+6. 如果引入新概念，首次出现时用「」锚一次定义，后面裸写不再加引号；定义用"名词 + 破题动作"一句话讲清楚
+7. 如果材料能对应国内实操场景，在结尾附近自然做一次桥接，不硬凑
 
 如果演讲或访谈围绕一个技术产品、协议或框架展开（比如 MCP、某个平台、某个工具），在介绍人物的同时顺手给它一句定义。不需要教科书式解释，一句能让非熟悉读者继续读下去即可。
 
@@ -298,10 +314,15 @@ python scripts/parse_vtt.py "字幕文件目录路径"
 
 - 正文有没有 Markdown 标题、列表、表格？
 - 有没有冒号、破折号、双引号等禁用标点？
-- 有没有 AI 腔词语和公式化句式？
-- 直接引语、概念名词、加粗是否符合规范？
-- 来源交代是否自然？全文读起来是在分享观点，还是替原视频做广告？
+- 有没有 AI 腔词语和公式化句式（包括「不是 A 而是 B」及其变体）？
+- 直接引语、概念名词、加粗是否符合规范？加粗总量（含章节标题）是否不超过 5 处？
+- 开头第一段是直接给判断 / 场景 / 数字，还是先写人物简历了？
+- 章节标题（如果有）是不是完整短句带动词，不是冷名词？
+- 能量化的支撑点有没有留下模糊形容词（「大幅」「显著」「很多」）？
+- 标题是否包含具体主体（不是纯抽象概念）？问题句标题文章里有没有真的给出答案？
+- 来源交代是否自然？有没有「X 评价挺复杂」这类空转场句？全文读起来是在分享观点，还是替原视频做广告？
 - 有没有告诉而不是展示：空洞断言多，具体细节少？
+- 如果材料能对应国内实操场景，是否做了一次桥接？
 
 ### 6.3 本地化与事实视角
 
@@ -386,7 +407,7 @@ python scripts/parse_vtt.py "字幕文件目录路径"
 
 文章超过 2000 字，且存在 3 个以上主题明显不同的段落群，读者在扫读时可能迷失时，可以加章节标题。如果文章本身叙事流畅、段落衔接自然、不超过 2000 字，不需要加。
 
-格式：在对应段落群的第一段之前，单独一行写加粗短标题，不用 Markdown `##` 语法，直接写 `**标题**`。标题控制在 6-12 字，是内容的最短概括，不要写 AI 式的「探索……」「深入了解……」。
+格式：在对应段落群的第一段之前，单独一行写加粗短标题，不用 Markdown `##` 语法，直接写 `**标题**`。标题写成完整短句或带动词的短语，长度 5-20 字，参考 [wechat-writing-rules.md 的章节标题部分](references/wechat-writing-rules.md#一正文结构)。不要写冷名词式标题，也不要写 AI 式的「探索……」「深入了解……」。
 
 ### 8.3 封面图截取
 
