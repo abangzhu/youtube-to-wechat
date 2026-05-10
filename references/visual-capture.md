@@ -89,9 +89,88 @@ mcp__chrome-devtools__take_screenshot
 
 **注意**：take_screenshot 写出来的文件扩展名可能是 `.jpeg`（即使你在 filePath 里写了 `.jpg`，它会按 format 字段自动补一次扩展名）。加一步 `mv foo.jpeg foo.jpg` 把扩展名规整成 `.jpg` 和 article 里的 Markdown 引用一致。
 
-### Step 5：多张图批量处理
+### Step 5：验证截图拿到的是不是对的那一帧
 
-同一篇文章要 3-5 张截图，**不要**每张都 `new_page`。在同一个 tab 里循环：`evaluate_script` 调 `currentTime` → 等 2 秒解码 → 再 `evaluate_script` 确认 `readyState === 4` → `take_screenshot(uid=同一个 video uid)` → 换下一个时间戳重复。video 元素的 uid 在同一个 tab 里不变，`take_snapshot` 只需要做一次。
+截完立刻验证，不要信任 happy path。这一步看似多余，但它能在你开始写 alt 文字之前就暴露两类现实存在的 bug。
+
+**chrome-devtools MCP 在多 YouTube tab 下会用错 uid**。如果你上一轮会话里开过别的 YouTube 视频 tab，`take_screenshot(uid="X_Y")` 有概率不解析到当前 selected tab 的 video 元素，而是解析到之前某个 YouTube tab 里同一位置的 video，截出来是另一场视频的画面。`evaluate_script` 本身会跟随 selected tab 正确执行（读到的 `video.currentTime`、`document.title`、`location.href` 都是对的当前 tab），但 `take_screenshot(uid=...)` 不会跟随。这是 MCP 本身的 bug，不是你的操作问题。
+
+**Claude Code 的 Read 工具对 image 有一层缓存**，两张尺寸相同（例如都是 1572×884）但内容完全不同的 JPEG，Read 渲染出来可能是同一张。也就是说：Read 看到的图不能作为"磁盘上真实内容"的证据。`md5` 不同但 Read 显示一样是会发生的现实情况。
+
+所以验证要跳过 Read 的缓存层，直接看文件字节：
+
+```bash
+# 法 1：看文件元数据，至少确认它是合法 JPEG、尺寸对
+sips -g pixelWidth -g pixelHeight -g typeIdentifier <VIDEO_ID>-frame-<MMSS>.jpg
+
+# 法 2：用 PIL 取平均 RGB，不同内容的图平均色差异通常很明显
+python3 -c "
+from PIL import Image
+img = Image.open('<VIDEO_ID>-frame-<MMSS>.jpg').resize((1,1))
+print('avg rgb:', img.getpixel((0,0)))
+"
+```
+
+判断经验：白底 slide 平均 RGB 接近 (200+, 200+, 200+)；深色软件界面或有人脸画中画的录屏平均 RGB 落在 (100-160) 区间。两张图如果平均色差超过 50，基本可以确认是不同画面。
+
+如果平均色符合预期但你还是不放心，把文件 `cp` 到 `/tmp/` 下一个全新名字再 Read——这能绕开 Read 对原路径的缓存。但这条路也可能失败（缓存 key 可能和内容相关而不是和路径相关），不要完全依赖。
+
+**判定逻辑**：如果 `evaluate_script` 的返回值确认视频在目标时间点且页面 URL 正确，但截图尺寸、平均色明显和预期不符（例如你在 Ravi 的 vibe coding 视频 20:57，截出来却是一张白底架构图），跳到 Step 6 的 fallback 路径。
+
+### Step 6：uid 路径失败时的 viewport + ffmpeg crop fallback
+
+不要和 MCP 死磕。放弃 `uid` 参数，直接截整个 viewport，然后用 ffmpeg 从 viewport 截图里裁出 video 元素的 bounding box。
+
+**Step 6.1 读出 video 元素的精确位置**。在当前 selected tab 里执行：
+
+```javascript
+() => {
+  const v = document.querySelector('video');
+  const rect = v.getBoundingClientRect();
+  return {
+    devicePixelRatio: window.devicePixelRatio,
+    // 逻辑坐标（CSS 像素）
+    left: rect.left, top: rect.top,
+    width: rect.width, height: rect.height,
+    // 视频原生分辨率，可以做 sanity check
+    videoWidth: v.videoWidth, videoHeight: v.videoHeight
+  };
+}
+```
+
+典型 YouTube 桌面网页返回的是类似 `{left: 16, top: 68, width: 786, height: 442, devicePixelRatio: 2, videoWidth: 1280, videoHeight: 720}`。
+
+**Step 6.2 截 viewport**。不带 uid：
+
+```
+mcp__chrome-devtools__take_screenshot
+  filePath: "<VIDEO_ID>-fullpage-<MMSS>.jpg"
+  format: "jpeg"
+  quality: 80
+```
+
+这张全页截图包含 YouTube header、右侧推荐栏、底部评论区，信息密度低，只是 crop 的中间产物，截完就扔。
+
+**Step 6.3 用 ffmpeg 按物理坐标裁出 video 区域**。物理坐标 = 逻辑坐标 × devicePixelRatio：
+
+```bash
+# 上面返回 left=16 top=68 width=786 height=442 DPR=2
+# 物理坐标：x=32 y=136 w=1572 h=884
+ffmpeg -y -i <VIDEO_ID>-fullpage-<MMSS>.jpg \
+  -vf "crop=1572:884:32:136" \
+  <VIDEO_ID>-frame-<MMSS>.jpg
+
+# 清掉中间产物
+rm <VIDEO_ID>-fullpage-<MMSS>.jpg
+```
+
+裁出来的 `<VIDEO_ID>-frame-<MMSS>.jpg` 就是纯 video 元素内容，和 uid 路径成功时的产物等价。Sanity check：裁后尺寸应该和 `width × DPR`、`height × DPR` 完全一致；如果 ffmpeg 报 crop 区域越界，说明 DPR 或 bounding rect 数值错了。
+
+回到 Step 5 再做一次平均色验证，确认和讲者当时的画面对得上。
+
+### Step 7：多张图批量处理
+
+同一篇文章要 3-5 张截图，**不要**每张都 `new_page`。在同一个 tab 里循环：`evaluate_script` 调 `currentTime` → 等 2 秒解码 → 再 `evaluate_script` 确认 `readyState === 4` → 走 Step 4 或 Step 6 的截图路径 → 换下一个时间戳重复。video 元素的 uid 和 bounding rect 在同一个 tab 里不变，`take_snapshot` 和 Step 6.1 的位置查询都只需要做一次。
 
 ---
 
