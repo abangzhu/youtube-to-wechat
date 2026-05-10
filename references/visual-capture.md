@@ -29,79 +29,69 @@
 
 工具：Chrome DevTools MCP。比 yt-dlp 下载整段视频再 ffmpeg 抽帧稳得多（yt-dlp 在 SABR 限制下经常失败），而且直接在浏览器里精确定位到帧，画质是 YouTube 解码后的原始像素。
 
+核心做法是 `take_screenshot(uid="<video-element-uid>")` —— 把 video DOM 元素的 uid 传给 take_screenshot，它会只截那个元素的 bounding box，而不是整个 viewport。这样截出来的图就是干净的视频画面，没有 YouTube 右侧推荐栏、评论区、控件叠加层。画质是实际显示尺寸 × devicePixelRatio，比视频原生 1280×720 常常还更清晰。
+
+**避坑提示**：不要用 `canvas.drawImage(video, 0, 0) + canvas.toDataURL()` 这套方案。在 YouTube 的 video 元素上，`drawImage` 的行为经测试并不会只画视频帧像素，导出的 base64 解码后仍带着 YouTube 页面 UI。浪费时间，直接走 uid 路线。
+
 ### Step 1：打开视频并定位到时间点
 
 用 `mcp__chrome-devtools__new_page` 打开带时间戳参数的 URL。YouTube 的时间参数格式是 `?t=Ns` 或 `?t=MMmSSs`，其中 N 是总秒数。
 
 ```
-URL 示例:
-https://www.youtube.com/watch?v=ynJyIKwjonM&t=141s   ← 2:21
-https://www.youtube.com/watch?v=ynJyIKwjonM&t=2m21s  ← 同上，写法二
+URL 示例：
+https://www.youtube.com/watch?v=ynJyIKwjonM&t=141s   （2:21）
+https://www.youtube.com/watch?v=ynJyIKwjonM&t=2m21s  （同上，写法二）
 ```
 
 从转录时间戳换算总秒数：`02:21` → 2×60+21 = 141 秒。
 
-### Step 2：等视频加载并暂停在指定帧
+如果 `new_page` 超时（YouTube 首屏慢，10 秒超时常发生），不用管。用 `list_pages` 找到带 `&t=` 的那个 tab，`select_page` 到它上面继续操作。
 
-视频打开默认会自动播放。等待 2-3 秒让它解码到那一帧，然后暂停在对的一帧上。用 `mcp__chrome-devtools__evaluate_script` 精确控制：
+### Step 2：跳到指定帧并暂停
+
+视频打开默认自动播放。用 `evaluate_script` 强制跳到目标秒数并暂停：
 
 ```javascript
 () => {
   const v = document.querySelector('video');
   if (!v) return { error: 'video element not found' };
-  // 强制跳到指定秒数，避免视频自己播飘了
   v.currentTime = 141;
   v.pause();
   return {
     currentTime: v.currentTime,
     paused: v.paused,
-    readyState: v.readyState,  // 4 表示可以截图了
-    duration: v.duration
+    readyState: v.readyState,
+    videoWidth: v.videoWidth,
+    videoHeight: v.videoHeight
   };
 }
 ```
 
-`readyState >= 3` 意味着当前帧已经解码好可以截了。如果返回 `readyState < 3`，再 `sleep 1` 重跑一次脚本确认。
+`seek` 之后 `readyState` 通常会掉到 1（数据还在解码），等 2 秒后再查一次，`readyState === 4` 就可以截了。
 
-### Step 3：隐藏 YouTube 控件再截图
+### Step 3：拿到 video 元素的 uid
 
-YouTube 播放器暂停时会叠加一层控件遮挡画面。截图前先把鼠标移出视频区域，或者直接注入 CSS 把控件隐掉：
+用 `mcp__chrome-devtools__take_snapshot`。在返回的 a11y tree 里找 `uid=X_Y Video` 这一行，那就是主视频元素的 uid。在本次样本里它是 `1_17`，实际每个 session 可能不同，用完就丢。
 
-```javascript
-() => {
-  const style = document.createElement('style');
-  style.id = 'hide-yt-controls';
-  style.textContent = `
-    .ytp-chrome-bottom, .ytp-gradient-bottom, .ytp-chrome-top,
-    .ytp-pause-overlay, .ytp-ce-element, .ytp-suggestion-set,
-    .ytp-endscreen-content, .ytp-cards-teaser, .ytp-scroll-min {
-      display: none !important;
-    }
-    video::-webkit-media-controls { display: none !important; }
-  `;
-  document.head.appendChild(style);
-  return 'controls hidden';
-}
-```
-
-### Step 4：截图到文件
-
-用 `mcp__chrome-devtools__take_screenshot`，指定 `uid` 为 video 元素可以只截视频区域。如果只需要整页截图，省略 `uid` 参数。
-
-文件名规范：`<VIDEO_ID>-frame-<MMSS>.jpg`，例如 `ynJyIKwjonM-frame-0221.jpg`。放在和 article.md 同一目录下，保持相对路径引用简单。
+### Step 4：截图到 video 的 uid
 
 ```
 mcp__chrome-devtools__take_screenshot
   filePath: "ynJyIKwjonM-frame-0221.jpg"
   format: "jpeg"
-  quality: 90
+  quality: 92
+  uid: "1_17"
 ```
 
-如果你想只截视频区域（推荐）：先用 `take_snapshot` 拿到 video 元素的 uid，再用那个 uid 截图。整页截图包含 YouTube 推荐栏、评论区，信息密度低。
+关键是 **`uid` 参数必须带上**。不带 uid，take_screenshot 默认截整个 viewport，你会得到 YouTube 完整 UI + 视频缩略版混在一起的难看的图。
+
+文件名规范：`<VIDEO_ID>-frame-<MMSS>.jpg`，例如 `ynJyIKwjonM-frame-0221.jpg`。放在和 `article.md` 同一目录下，相对路径引用简单。
+
+**注意**：take_screenshot 写出来的文件扩展名可能是 `.jpeg`（即使你在 filePath 里写了 `.jpg`，它会按 format 字段自动补一次扩展名）。加一步 `mv foo.jpeg foo.jpg` 把扩展名规整成 `.jpg` 和 article 里的 Markdown 引用一致。
 
 ### Step 5：多张图批量处理
 
-如果同一篇文章需要 3-5 张截图，不要每张都新开一个 page。在同一个页面里依次 `evaluate_script` 调整 `currentTime` 到下一个时间戳，暂停，截图，重复。把所有截图指令一次列好再执行，效率高得多。
+同一篇文章要 3-5 张截图，**不要**每张都 `new_page`。在同一个 tab 里循环：`evaluate_script` 调 `currentTime` → 等 2 秒解码 → 再 `evaluate_script` 确认 `readyState === 4` → `take_screenshot(uid=同一个 video uid)` → 换下一个时间戳重复。video 元素的 uid 在同一个 tab 里不变，`take_snapshot` 只需要做一次。
 
 ---
 
