@@ -23,6 +23,20 @@
 
 判断标准：如果读者看不到这张图，文章这一段的理解会不会打折？会打折就截。
 
+### 前置：转录是否带时间戳决定能不能直接走截图流程
+
+Section 二的整套截图流程依赖**转录里的 MM:SS 时间戳**——`evaluate_script` 调 `video.currentTime = 141` 这一步，141 是从转录时间戳换算来的。如果你的 `full_transcript_*.txt` 是用 yt-dlp 或 tactiq.io 拿到的，每段都有时间戳，直接进 Section 二。
+
+但如果转录是用 [kome.ai HTTP POST](youtube-transcript-fallback.md)（fallback 文档里的方法 A）拿的，**返回的纯文本里没有任何时间戳**。这时候出现 deixis 指示语，截图流程会卡在「不知道跳到哪一秒」这一步。
+
+三种处理方式按优先级选：
+
+1. **重新跑一次方法 B 拿带时间戳的版本**。如果 Chrome DevTools MCP 已恢复在线，去 tactiq.io 重抓一次字幕覆盖 `full_transcript_*.txt`，转录文件多几行时间戳不影响下游 `transcript.md` 和 `article.md`。这是最干净的路径。
+2. **手动在视频里找时间点**。打开视频，用 YouTube 自带的 Show transcript 面板按关键词搜定位（这个面板 YouTube 端是渲染好的，和 kome 拿到的纯文本不冲突）。适合只有 1-2 处需要截图的情况。
+3. **放弃截图改用文字描述**。如果讲者的图本身只是「列了三条 bullet」「画了一个简单的箭头」，文字完全能替代，跳过截图。但讲者的图是核心论点依托（架构图、对比表、UI 演示）时不要走这条，直接回退到方式 1。
+
+判断成本：方式 1 一次重抓 5-10 秒，比手动找时间戳快。优先方式 1。
+
 ---
 
 ## 二、从 YouTube 精确截图的流程

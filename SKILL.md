@@ -71,22 +71,46 @@ yt-dlp --write-auto-sub --sub-lang en --skip-download \
 
 **常见错误**：如果报 "Sign in to confirm you're not a bot"，加 `--cookies-from-browser chrome` 参数（需本地已登录 Chrome）。
 
-**方法二：tactiq.io 网页转录（yt-dlp 被 SABR 或 PO Token 拦住时的首选）**
+**方法二：kome.ai HTTP POST（yt-dlp 失败时最快的备用路径，无 Chrome 依赖）**
 
-yt-dlp 报 `Requested format is not available`、`PO Token was not provided` 或 `Some web client https formats have been skipped` 等错误时，说明 YouTube 的流量限制绕不过去，但字幕本身可能还在。优先切到 tactiq.io：
+yt-dlp 报以下错误之一时，说明被 YouTube 的 SABR 或 PO Token 拦住，但字幕本身可能还在：
+
+- `Requested format is not available`
+- `Some web client https formats have been skipped`
+- `n challenge solving failed: Some formats may be missing`（2026 年起常见）
+- `Sign in to confirm you're not a bot`（即使加了 `--cookies-from-browser chrome` 仍报）
+
+最快路径是 `kome.ai`，curl 一行就能拿到完整字幕（耗时 2-5 秒、无认证、无 Chrome 依赖）：
+
+```bash
+curl -sL -X POST "https://kome.ai/api/transcript" \
+  -H "Content-Type: application/json" \
+  -d '{"video_id":"<完整 YouTube URL>","format":true}' \
+  -o /tmp/kome.json
+```
+
+返回 JSON `{transcript, length, hasMore, isPremium}`。检查 `hasMore: false` 确认完整后，把 `transcript` 字段写入 `full_transcript_en.txt`。**唯一缺点是无时间戳**——演讲讲的是抽象内容、文章不需要截图时这条路最优；如果文章可能要插图（讲者用「这张图」「这段代码」等 deixis 指示语），切方法三。
+
+**方法三：tactiq.io + Chrome DevTools MCP（需要时间戳时用）**
+
+tactiq.io 在浏览器端拉字幕，输出带时间戳（`HH:MM:SS.fff` + 文本两行一对）。需要 Chrome DevTools MCP 在线：
 
 1. 用 Chrome DevTools MCP 打开 `https://tactiq.io/tools/run/youtube_transcript?yt={URL_ENCODED_YOUTUBE_URL}`
 2. 等 3-5 秒让 tactiq 后台拉字幕
 3. `evaluate_script` 取 `document.querySelector('#transcript').innerText`
-4. 拿到的是「时间戳 + 文本」每两行一对的格式，直接保存为 `full_transcript_en.txt` 或 `_zh.txt`
+4. 直接保存为 `full_transcript_en.txt` 或 `_zh.txt`
 
-这条路 90% 情况下几秒内就能搞定。完整脚本和失败处理见 [references/youtube-transcript-fallback.md](references/youtube-transcript-fallback.md)。
+如果 Chrome DevTools MCP 持续报 `Network.enable timed out`，说明 MCP 自身有问题，回退方法二。
 
-**方法三：Chrome DevTools MCP fetch 拦截器（tactiq 也失败但视频确实有字幕时用）**
+**方法四：Chrome DevTools MCP fetch 拦截器（前三条都失败但视频确实有字幕时用）**
 
-如果 tactiq 的 `#transcript` 为空而 YouTube 播放器显示字幕可用，走 Chrome DevTools MCP 在页面上注入 fetch 拦截器、再点击 Show transcript 的路径。步骤和脚本见同一份 fallback 文档。
+如果 kome 返回错或截断、tactiq 的 `#transcript` 为空但 YouTube 播放器显示字幕可用，走 Chrome DevTools MCP 在页面上注入 fetch 拦截器、再点击 Show transcript 的路径。步骤和脚本见 fallback 文档。
 
-**视频真的没有字幕的处理**：如果 YouTube 播放器直接显示 "Subtitles/closed captions unavailable"，所有免费路径都会失效（tactiq、youtubetranscript、downsub 全部依赖 YouTube 原生字幕）。此时用 `AskUserQuestion` 让用户选：基于二手媒体报道成文、等 24-48 小时 YouTube 自动生成字幕、用户自备转录文件、换视频。不要静默降级。处理细则见 fallback 文档最后一节。
+**已知失效的路径不要再试**：`youtubetranscript.com`（YouTube IP block）、`youtube-transcript-api` Python 包（同前）、`downsub.com get-info` 接口（参数挑剔且被同源策略影响）。
+
+完整决策树、错误排查表、何时跳到「无字幕处理」见 [references/youtube-transcript-fallback.md](references/youtube-transcript-fallback.md)。
+
+**视频真的没有字幕的处理**：如果 YouTube 播放器直接显示 "Subtitles/closed captions unavailable"，所有免费路径都会失效（kome、tactiq、youtubetranscript、downsub 全部依赖 YouTube 原生字幕）。此时用 `AskUserQuestion` 让用户选：基于二手媒体报道成文、等 24-48 小时 YouTube 自动生成字幕、用户自备转录文件、换视频。不要静默降级。处理细则见 fallback 文档最后一节。
 
 #### A.2 解析 VTT 字幕文件
 
