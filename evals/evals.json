@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "为 https://www.youtube.com/watch?v=v3Fr2JR47KA 生成一篇微信公众号",
-      "expected_output": "完整的微信公众号文章，内容覆盖 MCP 协议 18 个月演进、三层连接性框架、Progressive Discovery 和 Programmatic Tool Calling 两项改进、REST to MCP 反模式批评、2026 年 6 月路线图（无状态协议、跨应用访问、服务器自动发现等）。文章无 Markdown 标题/列表，无冒号破折号双引号，无 AI 腔词语，结尾有来源注记。",
+      "expected_output": "完整的微信公众号文章，内容覆盖 MCP 协议 18 个月演进、三层连接性框架、Progressive Discovery 和 Programmatic Tool Calling 两项改进、REST to MCP 反模式批评、2026 年 6 月路线图（无状态协议、跨应用访问、服务器自动发现等）。文章按需使用 H2 章节标题，无列表，无冒号破折号双引号，无 AI 腔词语，结尾有来源注记。",
       "files": [],
       "assertions": [
         {"text": "article.md 文件存在于输出目录"},
         {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
+        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
         {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
         {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
         {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
@@ -35,7 +35,7 @@
       "assertions": [
         {"text": "article.md 文件存在于输出目录"},
         {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
+        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
         {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
         {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
         {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
@@ -61,7 +61,7 @@
       "assertions": [
         {"text": "article.md 文件存在于输出目录"},
         {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
+        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
         {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
         {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
         {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
@@ -81,7 +81,7 @@
       "assertions": [
         {"text": "article.md 文件存在于输出目录"},
         {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中没有 ## 或 ### 级别的 Markdown 标题行"},
+        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
         {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
         {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
         {"text": "article.md 保留原文关键 prompt 示例或代码块，而不是全部改写成二手概括"},

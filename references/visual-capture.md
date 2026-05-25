@@ -109,7 +109,7 @@ mcp__chrome-devtools__take_screenshot
 
 **chrome-devtools MCP 在多 YouTube tab 下会用错 uid**。如果你上一轮会话里开过别的 YouTube 视频 tab，`take_screenshot(uid="X_Y")` 有概率不解析到当前 selected tab 的 video 元素，而是解析到之前某个 YouTube tab 里同一位置的 video，截出来是另一场视频的画面。`evaluate_script` 本身会跟随 selected tab 正确执行（读到的 `video.currentTime`、`document.title`、`location.href` 都是对的当前 tab），但 `take_screenshot(uid=...)` 不会跟随。这是 MCP 本身的 bug，不是你的操作问题。
 
-**Claude Code 的 Read 工具对 image 有一层缓存**，两张尺寸相同（例如都是 1572×884）但内容完全不同的 JPEG，Read 渲染出来可能是同一张。也就是说：Read 看到的图不能作为"磁盘上真实内容"的证据。`md5` 不同但 Read 显示一样是会发生的现实情况。
+**某些运行环境的图片预览能力可能有缓存**，两张尺寸相同（例如都是 1572×884）但内容完全不同的 JPEG，预览出来可能是同一张。也就是说：预览看到的图不能作为"磁盘上真实内容"的证据。`md5` 不同但预览显示一样是会发生的现实情况。
 
 所以验证要跳过 Read 的缓存层，直接看文件字节：
 

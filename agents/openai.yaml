@@ -1,0 +1,4 @@
+interface:
+  display_name: "YouTube to WeChat"
+  short_description: "把视频、网页和文档改写成公众号文章"
+  default_prompt: "Use $youtube-to-wechat to turn this source into a polished WeChat article."
