@@ -241,6 +241,16 @@ Ask for clarification only when the missing information would materially change 
 
 **举一反三**：读完一句话，问：「这句话最重要的信息是什么？」如果最重要的信息在后半句，考虑是否可以把它提到前面。中文读者习惯在句子开头得到定向信息。
 
+**英文状语前置 → 中文主体前置**：英文常用 "X published an article on May 8, 2026" / "As an AI output format, HTML should replace Markdown" 这种把日期、范围、定语前置的语序。直译过来变成「X 一篇 2026 年 5 月 8 日发的文章」「作为 AI 的输出格式,HTML 应该替代 Markdown」，读起来"前面一坨修饰，主体被推到后面"。中文习惯是「主体 + 动词 + 宾语」，状语后置或单独成句。
+
+| 英文直译（前置生硬） | 中文自然（主体前置） |
+|---|---|
+| Thariq Shihipar 一篇标题叫「The Unreasonable Effectiveness of HTML」的文章,2026 年 5 月 8 日发出来后 16 小时拿到 440 万次浏览 | Thariq Shihipar 在 2026 年 5 月 8 日发表了一篇「The Unreasonable Effectiveness of HTML」的文章, 16 小时拿到 440 万次浏览 |
+| 在自家博客上的核心判断是,作为 AI 的输出格式,HTML 应该替代 Markdown | 自家博客上的核心是,HTML 应该替代 Markdown。作为 AI 的输出格式 |
+| 在过去 6 个月里,Anthropic 内部上线了 12 个新 Skill | Anthropic 内部在过去 6 个月里上线了 12 个新 Skill |
+
+**举一反三**：英文里"As X, Y" / "In/On/At [time/place], subject + verb" / "[Date], subject + verb" 这种状语前置的句式，翻译时先问"主体是谁？动词是什么？"，把主体动词移到句首，状语放后面或拆成第二句。
+
 ---
 
 ## 七、冒号 + 分号列举结构
