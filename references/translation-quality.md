@@ -408,6 +408,11 @@ Ask for clarification only when the missing information would materially change 
 | working memory | 工作记忆 |
 | chain of thought | 推理链条 |
 | thinking modes | 思考模式 |
+| emergence / emerge | 涌现 / 涌现出来 (AI 圈标准译法,不要写"冒出来"或"出现") |
+| research benchmark | 学术 Benchmark (不要直译"研究 Benchmark","研究"在中文里语义模糊) |
+| harness | harness (周知名词,不必翻译,首次出现不用加注) |
+| PvP / PVP | 让模型互相对打 / 模型对战 (公众号读者多数不熟 PVP 缩写,直接用大白话) |
+| saturation (of benchmarks) | (Benchmark) 饱和 / 分数到顶 (不要用"解饱和"这种化学隐喻做标题) |
 
 **术语优先大白话译法**：
 
