@@ -160,10 +160,24 @@
 
 ## 截图命令
 
-不依赖 Bun / Playwright,直接用 macOS 自带 Chrome headless:
+不依赖 Bun / Playwright,直接用 Chrome / Chromium headless。Chrome 路径按平台:
 
 ```bash
+# macOS
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+# Linux(任选一个,看哪个装了)
+CHROME="/usr/bin/google-chrome"           # Google Chrome
+CHROME="/usr/bin/chromium"                # Chromium
+CHROME="/usr/bin/chromium-browser"        # Ubuntu / Debian 旧路径
+
+# Windows(PowerShell / Git Bash)
+CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"
+```
+
+确认路径后跑命令:
+
+```bash
 "$CHROME" --headless --disable-gpu --hide-scrollbars \
   --force-device-scale-factor=2 \
   --window-size=900,383 \
@@ -171,11 +185,19 @@ CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   file:///tmp/cover.html
 ```
 
-输出 `cover.png` 是 1800×766 的 2x DPR 高清图。如果要用作微信公众号首图(`.jpg`),用 sips 转一下:
+输出 `cover.png` 是 1800×766 的 2x DPR 高清图。如果要用作微信公众号首图(`.jpg`),把 PNG 转 JPG:
 
 ```bash
+# macOS 自带
 sips -s format jpeg cover.png --out cover.jpg
+
+# Linux / Windows 用 ImageMagick(需安装)
+convert cover.png cover.jpg
+# 或者用 ffmpeg
+ffmpeg -i cover.png -y cover.jpg
 ```
+
+**环境检查**:命令报"command not found"或"无法识别"时,先用 `which google-chrome` / `which chromium` / `where chrome.exe` 确认实际路径。所有现代 Chromium-based 浏览器(Edge、Brave、Vivaldi)都支持 `--headless` 模式,可以替换。
 
 如果需要边迭代边看效果(比如调字号、调渐变),更顺手的做法是用 Chrome DevTools MCP 打开 `file:///tmp/cover.html`、`resize_page` 到 900×383、然后 `take_screenshot`,改完直接 reload 即可。最终定稿出 PNG 还是用上面的 headless 命令,得到稳定的 2x 高清图。
 

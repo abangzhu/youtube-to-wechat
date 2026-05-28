@@ -2,7 +2,7 @@
 
 这份文件负责英文来源、机器中文字幕和本地化改写后的中文稿。目标有两层：先保证原文没有走样，再把中文改到自然可读。它适用于 `bilingual-transcript.md`、`transcript.md` 和最终文章的本地化复查。
 
-微信公众号成文规则按阶段读取：[article-structure.md](article-structure.md)、[style-and-ai-voice.md](style-and-ai-voice.md)、[self-review.md](self-review.md)、[title-and-publishing.md](title-and-publishing.md)。
+微信公众号成文规则按阶段读取：[article-structure.md](article-structure.md)、[ai-voice-prohibitions.md](ai-voice-prohibitions.md)、[sentence-level-errors.md](sentence-level-errors.md)、[narration-and-formatting.md](narration-and-formatting.md)、[self-review.md](self-review.md)、[title-and-publishing.md](title-and-publishing.md)。
 
 ---
 
