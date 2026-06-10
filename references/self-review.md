@@ -118,6 +118,9 @@ grep -nE "[一-龥]:" "$F"
 - **元叙述命名包装句**:看"他给这个动作起了一个说法,X / 把它归到一种 X / 用了一个很容易懂的类比",砍掉命名 / 归类的叙述动作和评价词,让讲者的主张直接出场。错例:"他给这个动作起了一个很直接的说法,别向机器做认知投降" → 改:"他建议我们不要向机器做认知投降"。这是访谈 / 演讲转述里高频的别扭表达。详见 [sentence-level-errors.md](sentence-level-errors.md) §6.2.x 元叙述命名包装句要砍掉
 - **触感形容词评价定义 / 判断**:看"X 讲的 Y 更硬一些 / 更软一些","硬 / 软 / 轻 / 重"不是定义的合法形容词,删掉、用"X 认为 / X 指的是"直接给定义。错例:"Fadell 讲的 taste 更硬一些,指的是 Z" → 改:"Fadell 认为 taste 指的是 Z"。详见 [sentence-level-errors.md](sentence-level-errors.md) §度量 / 触感形容词
 - **空间方位隐喻代转折**:看"A 是 X,B 另一边看到的是 Y","另一边 / 另一头"含糊代替"但",换成显式转折词。错例:"Apple 另一边看到的是 98% 普通用户" → 改:"但 Apple 看到的是 98% 普通用户"。详见 [sentence-level-errors.md](sentence-level-errors.md) §6.2.x 空间方位隐喻替代转折连词
+- **去转述腔别走偏成"说得很直接"**:把"X 说"改成"X 说得很直接 / 很清楚"不算去转述腔(只是叠了评价词)。内容是判断时,换成"X 的判断是 / X 认为"。错例:"在代码上,Fadell 说得很直接" → 改:"在代码上,Fadell 的判断是"。详见 [sentence-level-errors.md](sentence-level-errors.md) §6.2.x 元叙述命名包装句(特别警告)
+- **否定判断别用"很不像"软化**:实际意思是"不是 X"却写"很不像 X / 不太像 X",直接"不是"。错例:"看法很不像「发布前包装」" → 改:"看法不是「发布前包装」"。详见 [sentence-level-errors.md](sentence-level-errors.md) §6.2.x 否定判断不要用"很不像"软化
+- **形容词与抽象名词搭配(配价)**:"提醒"配"重要"不配"要紧","判断"配"准确"不配"快";"放到 X 时代更 Y"容器框架简化成"在 X 时代更 Y"。错例:"这层提醒放到 AI 时代更要紧" → 改:"这个提醒在 AI 时代更重要"。详见 [sentence-level-errors.md](sentence-level-errors.md) §6.2.x 形容词与抽象名词的搭配
 - **"那种角色的人"冗余**:看"X 那种角色的人 / X 这种类型的人",改成"X 的角色"。详见 [sentence-level-errors.md](sentence-level-errors.md) §六之二
 - **主语被"处所化 / 容器化"的直译费解句**:英文 "put X in a bigger question / frame X within Y / situate X in Z" 直译成中文会变成"把 X 放进一个更大的问题里问 / 把 X 放进 Y 框架里"——读者完全 parse 不出动作。这类句子单独读一遍若需要停顿反推"到底谁对谁做了什么",就改成最朴素的主谓宾。错例:"Brian 把 Ivan 放进一个更大的问题里问" → 改:"Brian 问了 Ivan 一个更大的问题"。判断方法:把英文动词还原(put / frame / situate / place + 抽象名词容器),中文几乎都该拆成"谁 + 动词 + 谁 + 什么"。
 - **末段综合升华段**:整篇结尾段是否只是把前文 thesis 再说一遍?整段拿掉论证是否受损?见 [article-structure.md](article-structure.md) §3.x.收尾2
