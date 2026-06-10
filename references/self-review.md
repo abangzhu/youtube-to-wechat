@@ -94,7 +94,8 @@ grep -nE "[一-龥]:" "$F"
 
 | 命中条目 | 修正参考 |
 | --- | --- |
-| 破折号密度超 | [ai-voice-prohibitions.md](ai-voice-prohibitions.md) §6.x 破折号密度控制 |
+| 破折号密度超 | [ai-voice-prohibitions.md](ai-voice-prohibitions.md) §6.x 破折号清零 + 替换优先级 |
+| H2 超 20 字 | [article-structure.md](article-structure.md) §二「章节标题长度控制 5–20 字」+ [title-and-publishing.md](title-and-publishing.md) §8.x「H2 要压成可复用判断」 |
 | 不是 X 而是 Y / 隐性变体 | [ai-voice-prohibitions.md](ai-voice-prohibitions.md) §六 结构词类 |
 | 戏剧化动词 / 文学化动词 | [ai-voice-prohibitions.md](ai-voice-prohibitions.md) §六 文学化动词表 |
 | 强调副词 | [ai-voice-prohibitions.md](ai-voice-prohibitions.md) §6.x 强调副词稀释信任 |
