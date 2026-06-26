@@ -64,7 +64,10 @@ yt-dlp --write-auto-sub --sub-lang en --skip-download --cookies-from-browser chr
 
 ```bash
 python scripts/parse_vtt.py "字幕文件目录路径"
+python scripts/parse_vtt.py --keep-timestamps "字幕文件目录路径"
 ```
+
+默认输出 `_parsed.txt` 纯文本，适合快速整理 `transcript.md`。需要截图、英文双语对照或后续按时间点核查时，必须同时生成 `_timestamped.txt`，并保留原始 `.vtt`，不要只留下去时间戳文本。
 
 `yt-dlp` 失败、字幕缺失、字幕截断、需要时间戳或 YouTube 反爬时，读取 [references/youtube-transcript-fallback.md](references/youtube-transcript-fallback.md)。不要反复尝试该文档列为失效的路径。
 
@@ -181,7 +184,7 @@ python scripts/parse_vtt.py "字幕文件目录路径"
 # 标题
 ```
 
-封面图先选路径:**A. 抓取现成图**(YouTube 缩略图 / 网页 og:image / 文档截图)或 **B. HTML 模板生成原创卡片**(极简纯白 + 厚字重 + 可选渐变)。
+封面图先选路径:**A. 抓取现成图**(YouTube 缩略图 / 网页 og:image / 文档截图)或 **B. HTML 模板生成原创卡片**(极简纯白 + 厚字重 + 可选渐变)。先准备方案和候选素材;最终 `cover.jpg` 和摘要图等用户确认标题与正文定稿后再生成,避免图文不一致。
 
 按内容类型选:
 
@@ -197,6 +200,16 @@ python scripts/parse_vtt.py "字幕文件目录路径"
 ## Step 8 发布到 Notion（按需）
 
 用户要求把成稿连文带图发布 / 上传到 Notion 知识库时（如「放到 Notion 写作/AI/Blog 转载目录下」），读取 [references/publish-to-notion.md](references/publish-to-notion.md)。要点：Notion MCP 的块类型 schema 是简化的但实际透传完整类型；本地图片不能上传，来源若有公网图 URL（`source.json` / og:image / X CDN）就用 external image block 直接引用；图片用 alt 里的 media ID 映射到 URL，不要按文件名顺序硬配；正文分批 `patch-block-children`。
+
+## 维护和回归测试
+
+修改本 skill 后读取 `evals/evals.json`，按改动风险挑选 forward-test 用例。最小回归集：
+
+- Case 5：英文片段本地化，覆盖代词、泛指词、术语和句法骨架。
+- Case 6：本地 Markdown 长指南，覆盖 Path C、代码块保留和避免压缩成摘要。
+- Case 7：中文文本片段，覆盖 Path D、中文改写和不得脑补事实。
+
+改动 YouTube、网页抓取、封面、截图或 Notion 发布路径时，再加跑对应来源类型的 case。forward-test 提示应像真实用户请求一样传入原始来源或文件，不要把预期答案、诊断结论或修复意图泄露给测试 agent。
 
 ## 输出文件
 
