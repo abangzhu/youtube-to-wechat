@@ -500,6 +500,6 @@ grep 触发词:`幻灯片里` `PPT 上` `展台` `Q&A.{0,3}问到` `中场` `会
 - 「内容来源，Lenny's Podcast「Why cultivating agency matters more than cultivating skills in the AI era | Max Schoening (Notion)」，YouTube 链接 https://...」
 - 「内容来源，GRITCULT「Marketing is dead. Long live The Distribution Engineer.」，原文链接 https://...」
 
-如果主讲人身份对读者有帮助，可以在来源行后补一句 "演讲者为 X（Y 公司，身份）"。
+默认不补这一句。正文里通常已经交代过主讲人/嘉宾的名字和身份，来源行再重复一遍是冗余（来自 t0GiTyz4syY session）。只有当正文完全没提到嘉宾名字、来源行是读者唯一能看到这个身份的地方时，才补一句 "演讲者为 X（Y 公司，身份）"。
 
 ---
