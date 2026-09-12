@@ -213,6 +213,8 @@ python scripts/parse_vtt.py --keep-timestamps "字幕文件目录路径"
 
 ## 输出文件
 
+**工作目录命名（必须带日期前缀）**：每次任务开始时，新建的工作目录名一律用 `<今天日期 YYYY-MM-DD>-<VIDEO_ID 或来源 slug>` 格式，例如 `2026-09-12-v42opQpCy60`、`2026-09-12-gpt6-astra-looped-transformers`。不要只用裸的 `<VIDEO_ID>` 或裸 slug 建目录——vault 里同时堆着几十上百个历史任务文件夹，没有日期前缀时用户在 Finder / Obsidian 里根本分不清哪些是当天新做的。这条从 Step 1 建目录那一步就要执行，不是写完之后再补名字。
+
 | 文件 | 内容 | 何时生成 |
 | --- | --- | --- |
 | `full_transcript_en.txt` / `full_transcript_zh.txt` | 原始来源文本 | YouTube 必做;网页 / 本地文件按需(用户要求可追溯底稿时) |
