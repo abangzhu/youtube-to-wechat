@@ -1,74 +1,56 @@
-# 发布到 Notion（连文带图）
+# 发布到 Notion：能力探测、精确配图与恢复
 
-读取时机：成稿后，用户要求把 `article.md` 发布 / 上传到 Notion 知识库（如「放到 Notion 写作/AI/Blog 转载目录下」「连文带图创建一篇 Notion 文档」）。
+仅在用户要求发布到 Notion 时执行。已有发布授权覆盖正常的建页、上传素材、写入正文和验证，不额外要求一次泛化的“确认发布”。目标目录有实质歧义时先解析候选；确实无法确定才问用户。
 
-用的是 Notion MCP 工具：`API-post-search`（找目录）、`API-post-page`（建页）、`API-patch-block-children`（灌正文）、`API-get-block-children`（验证）。
+## 1. 先确认当前连接器能做什么
 
-## 两条必须先知道的认知
+发现当前 Notion 连接器并读取实际工具 schema，确认搜索/读取页面、创建页面、追加或更新块、图片上传或 external image、读取结果等能力。不同环境的工具名和块类型可能不同。
 
-**1. MCP 的 schema 是简化的，实际透传完整 Notion 块类型。**
-`API-patch-block-children` 的入参 schema 只声明了 `paragraph` 和 `bulleted_list_item`，但实测 `heading_2`、`code`、`image`、`divider`，以及 rich_text 的 `annotations`（`bold` / `italic` / `color`）全都能正常透传创建。不要被 schema 限制住，放心传完整 Notion block JSON。
+- 只传当前 schema 支持的参数。历史上某接口能透传完整 JSON，不构成绕过当前工具约束的理由；缺少块类型时选择已提供的等价接口或报告限制。
+- 不假定“没有上传功能”。检查当前是否支持文件上传、上传完成确认和图片块引用；有则按工具文档执行。
+- 如果仅支持 external image，URL 必须是经核对的直接图片地址，且符合平台要求。网页/视频 URL、本地路径、过期签名 URL 不能假装为可用图片链接。
+- 单批块数、富文本长度、限流和嵌套限制以当前工具/官方文档为准；按段落或章节分批，代码和链接不得截断。
 
-**2. 没有文件上传能力 —— 本地图片不能直接进 Notion。** 两条路：
-- **来源是网页 / X / YouTube → 图片几乎都有公网 URL**（存在抓取保存的 `source.json` / `metadata.json` / 网页 og:image / X 的 `pbs.twimg.com` CDN）。用 **external image block** 直接引用公网 URL，最省事，也保证图文位置精确对应。代价：图归原站托管，原站删图则 Notion 里失效；要永久副本得让用户在 Notion 桌面端手动拖入本地图替换。
-- **没有公网 URL（纯本地截图）→** 文字正文先发，图片位置留 `[图：文件名]` 占位 paragraph，让用户手动拖入。不要假装能自动上传。
+## 2. 发布前整理可恢复的计划
 
-## 流程
+读取 `article.md`、[assets.json 契约](visual-capture.md#3-assetsjson-契约)和本任务已有 `publish-state.json`。先完成可独立进行的标题、正文、素材匹配与块转换，再执行外部写入。
 
-**0. 定位目录（别发错地方）**
-`API-post-search` 搜目录名 → 取候选 page_id → 对命中的页 `API-retrieve-a-page` 逐级验证 parent 链（确认它真在「写作 → AI → Blog转载」这条链下，而不是同名的另一个目录）。
+1. 根据用户给出的名称或链接定位父页；有同名目录时核对祖先链。新页第一行 H1 用作页面标题，不在正文重复。
+2. 解析 Markdown 中每个图片的 `local_path`，规范化后与 `assets.json` 精确匹配；保持 alt 为可读描述。不从 alt、数组位置或相似文件名猜 ID。
+3. 每张图选实际可用的发布方式：上传成稿中的本地文件，或使用已确认与成稿一致的直接 `source_url`。素材有裁切/重绘时不能悄悄退回另一张原图。缺图不能用封面兜底。
+4. 把段落、标题、引用、代码、链接和图片转换为连接器支持的块。按文章顺序记录批次，包含内容摘要/hash 以识别同一版本。
 
-**1. 建页**
-`API-post-page`，`parent = {"page_id": "<目录id>"}`，`properties.title` 放文章主标题。
-注意：**`article.md` 第一行的 H1 是 Notion 的 page title，不作为正文 block 重复**。可给一个 `icon` emoji。
+`publish-state.json` 是恢复记录，不存凭据或临时上传令牌。建议结构：
 
-**2. 灌正文（分批）**
-`API-patch-block-children` 按章节分批追加。限制：单次 ≤ 100 个 block；单个 rich_text `content` ≤ 2000 字符。每批一个或几个 H2 章节，按原文顺序。
-
-**3. 验证**
-`API-get-block-children` 数一下块 / 图数量，或直接打开返回的页面 URL 看一眼图片是否都渲染出来（external 图偶有不显示，需提示用户）。
-
-## 图片映射陷阱（最容易错）
-
-抓取脚本下载的本地文件名顺序（`img-01.jpg`、`img-02.png`…）**经常和 `source.json` 里 media 数组的顺序不一致**（典型症状：本地 png 在 img-02/04，但 media 数组里 png 在末尾）。**绝不要按 media 数组下标硬配 img-01..N。**
-
-正确做法：`article.md` 的图片 alt 里带了 media ID（`![image 2061854734441725952](.../img-02.png)`）。用这个 ID 去匹配 `source.json` 里每个 entity 的 `media_id`，建立精确的「本地文件名 → 公网 URL」映射。脚本示例：
-
-```python
-import json, re
-d = json.load(open("<source.json>"))
-art = d["tweet"]["article"]                       # X article 的结构，其他来源相应调整
-id2url = {art["cover_media"]["media_id"]: art["cover_media"]["media_info"]["original_img_url"]}
-for m in art["media_entities"]:
-    id2url[m["media_id"]] = m["media_info"]["original_img_url"]
-# article.md 里 alt 的数字就是 media_id，按正文顺序取 URL
-for alt, fn in re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', open("<article.md>").read()):
-    mid = alt.replace("image", "").strip()
-    print(fn.split('/')[-1], "->", id2url.get(mid, "cover" ))
+```json
+{
+  "status": "planned",
+  "parent_id": "已核实的目标父页 ID",
+  "page_id": null,
+  "page_url": null,
+  "article_sha256": "待由本地 article.md 计算",
+  "assets": [],
+  "batches": [],
+  "last_error": null
+}
 ```
 
-## 块构造速查（Notion block JSON）
+`status` 可用 `planned`、`in_progress`、`partial`、`complete`；每批记录序号、内容 hash、已返回的块 ID 和写入状态，每张素材记录其 `asset_id`、远端文件/块 ID 和验证状态。
 
-```jsonc
-// 段落
-{"type":"paragraph","paragraph":{"rich_text":[{"type":"text","text":{"content":"..."}}]}}
-// 章节标题
-{"type":"heading_2","heading_2":{"rich_text":[{"type":"text","text":{"content":"..."}}]}}
-// 加粗小标题（对应正文里的 **加粗** 段，如模式名）
-{"type":"paragraph","paragraph":{"rich_text":[{"type":"text","text":{"content":"..."},"annotations":{"bold":true}}]}}
-// 列表项，首词加粗（对应 "- **X** 说明"）
-{"type":"bulleted_list_item","bulleted_list_item":{"rich_text":[
-  {"type":"text","text":{"content":"X"},"annotations":{"bold":true}},
-  {"type":"text","text":{"content":" 说明……"}}]}}
-// 代码块（英文 prompt + 中文译文同块，用 \n 换行）
-{"type":"code","code":{"language":"plain text","rich_text":[{"type":"text","text":{"content":"英文...\n\n中文..."}}]}}
-// 外链图片
-{"type":"image","image":{"type":"external","external":{"url":"https://..."}}}
-// 分隔线
-{"type":"divider","divider":{}}
-// 来源行（灰色斜体注记）
-{"type":"paragraph","paragraph":{"rich_text":[{"type":"text","text":{"content":"内容来源，..."},"annotations":{"italic":true,"color":"gray"}}]}}
-```
+## 3. 写入与恢复
 
-## 标点
-正文沿用中文全角即可。来源行 URL 和英文标题里的半角冒号（`X: Y`、`https:`）保留，不要全角化。
+确认父页后正常执行已授权发布。优先先完成素材上传，再建页并按顺序写入；工具要求先有页时按实际流程调整。每次成功返回后立即保存页 ID、素材映射和批次进度。
+
+- 已有同任务 page_id 时先读取并恢复，不默认新建副本；正文有新版本时明确比较后更新对应块。
+- 建页请求超时、结果未知时，先查目标目录下是否已建成，结合标题、父页和本任务标记核对；不要直接重试创建。
+- 追加请求超时也先读取该页，核对批次尾部和返回块；不能确认未写入时不要盲目追加同一批。
+- 内容 hash 只用于判断本地版本和批次一致性，不能代替远端读取确认。恢复时保留用户已作的远端编辑，不整页覆盖。
+- 图片上传失败后可重试该素材；已成功的正文和图片无需重新发布。出现限制时保存部分完成状态与准确缺口。
+
+如果连接器不能上传本地图片且没有可用直接图链，继续完成块准备和已有可上传素材，但不得宣称“连文带图发布完成”。用户明确允许先发文字/草稿时，可建带清楚占位的草稿并记录 `partial`；否则说明具体缺失能力，并交付可用本地包或询问能否先发部分内容。不能静默将完整发布降为缺图文章。
+
+## 4. 成功验收
+
+读取所有已写入块（需要时翻页），确认标题、顺序、段落、代码、链接、图片数和 `assets.json` 对应关系。图片还要确认远端上传完成或链接实际可访问，并在可用浏览器/预览中查看渲染；仅收到一个 page_id 不足以证明发布成功。
+
+只有本次授权范围内的正文和图片都已写入并核验，才设为 `complete` 并返回页面链接。若只能验证数据写入、无法验证图片展示，明确该限制，保留待验证项，不宣称图片已正常渲染。最终交代实际完成范围；部分发布附已建页面链接、缺失素材和可恢复位置。

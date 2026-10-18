@@ -1,160 +1,474 @@
 {
   "skill_name": "youtube-to-wechat",
+  "schema_version": 2,
+  "evaluation_protocol": {
+    "input_isolation": "执行者只接收 prompt、files、技能和必要的前序对话；expected_output、assertions 与审查结论只交评估者。",
+    "grading": "分别判断事实忠实、读者理解、内容取舍、表达和交付范围；硬性事实/文件错误与风格建议分开报告。",
+    "stages": "draft、awaiting-title、ready 是交付状态；多轮 case 的每一轮独立验收。来源完整性在 source.json 中单独记录。",
+    "scope": "local 用固定材料检查行为；integration 另行检查外部获取能力，不因网络故障给文字质量打零分。",
+    "selection": "文字规则改动选 5/6/7 与相关新案例；完整重构执行 5–13。脚本安全由 tests 中单元测试覆盖。"
+  },
   "evals": [
     {
       "id": 1,
+      "tier": "integration",
+      "stage": "awaiting-title",
       "prompt": "为 https://www.youtube.com/watch?v=v3Fr2JR47KA 生成一篇微信公众号",
-      "expected_output": "完整的微信公众号文章，内容覆盖 MCP 协议 18 个月演进、三层连接性框架、Progressive Discovery 和 Programmatic Tool Calling 两项改进、REST to MCP 反模式批评、2026 年 6 月路线图（无状态协议、跨应用访问、服务器自动发现等）。文章按需使用 H2 章节标题，无列表，无冒号破折号双引号，无 AI 腔词语，结尾有来源注记。",
       "files": [],
+      "expected_output": "来源可完整获取时产出可核对的公众号初稿和标题候选；无法获取时准确报告状态和可完成范围。",
       "assertions": [
-        {"text": "article.md 文件存在于输出目录"},
-        {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
-        {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
-        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
-        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
-        {"text": "article.md 末尾包含「内容来源」字样的来源注记"},
-        {"text": "article.md 正文字数不少于 800 字（含标点，不含标题和来源行）"},
-        {"text": "article.md 中明确提到 MCP 协议（或 Model Context Protocol）"},
-        {"text": "article.md 自然交代来源，但不能频繁用演讲者转述推动全文"},
-        {"text": "article.md 中核心英文术语首次出现时有中文锚点或必要解释"},
-        {"text": "transcript.md 文件存在于输出目录"},
-        {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"},
-        {"text": "bilingual-transcript.md 中 it/they/this/that/here/there 以及 thing/stuff/component 等泛指表达已按上下文还原，不能机械直译为「这里」「那里」「东西」「组件」"},
-        {"text": "bilingual-transcript.md 中关键术语可核查原意；有成熟中文译法时可采用「中文（English）」格式，产品名、工具名和 UI 标签可保留英文"},
-        {"text": "transcript.md 中有成熟中文译法的技术术语优先使用通用译法，不能无判断保留英文"},
-        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致演讲者、公司、产品或系统混淆"},
-        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑译成互不相干的并列句"}
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "source",
+          "text": "获取状态与来源完整性分开记录；服务失败不等于没有来源，无法完整获取时说明缺口而非捏造内容。"
+        }
       ]
     },
     {
       "id": 2,
+      "tier": "integration",
+      "stage": "awaiting-title",
       "prompt": "帮我把这个播客整理成公众号文章：https://www.youtube.com/watch?v=yUohoaC8_Hs",
-      "expected_output": "完整的微信公众号文章，内容覆盖「建设者」vs「信息搬运工」划分、影子超能力概念、喜悦时刻作为转型起点、蒲公英种子意象、smiling exhaustion。人物背景交代 Nikhyl Singhal（Skip 社区、Meta/Google 高管）和 Lenny Rachitsky（Lenny's Podcast）。文章无结构违规，中文表达自然，无翻译腔。",
       "files": [],
+      "expected_output": "来源可完整获取时产出可核对的公众号初稿和标题候选；无法获取时准确报告状态和可完成范围。",
       "assertions": [
-        {"text": "article.md 文件存在于输出目录"},
-        {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
-        {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
-        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
-        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
-        {"text": "article.md 末尾包含「内容来源」字样的来源注记"},
-        {"text": "article.md 正文字数不少于 800 字"},
-        {"text": "article.md 中提到主要嘉宾姓名（Nikhyl Singhal 或相关变体）"},
-        {"text": "article.md 自然交代来源，但不能频繁用嘉宾或主播转述推动全文"},
-        {"text": "article.md 中核心英文概念首次出现时有中文锚点或必要解释"},
-        {"text": "transcript.md 文件存在于输出目录"},
-        {"text": "bilingual-transcript.md 文件存在于输出目录（英文视频必须生成双语对照）"},
-        {"text": "bilingual-transcript.md 中 it/they/this/that/here/there 以及 thing/stuff/component 等泛指表达已按上下文还原，不能机械直译为「这里」「那里」「东西」「组件」"},
-        {"text": "bilingual-transcript.md 中关键英文概念可核查原意；有成熟中文译法时可采用「中文（English）」格式，产品名、工具名和 UI 标签可保留英文"},
-        {"text": "transcript.md 中有成熟中文译法的英文概念优先使用中文锚点，不能无判断保留英文"},
-        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致嘉宾、主播、公司、产品或系统混淆"},
-        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑译成互不相干的并列句"}
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "source",
+          "text": "获取状态与来源完整性分开记录；服务失败不等于没有来源，无法完整获取时说明缺口而非捏造内容。"
+        }
       ]
     },
     {
       "id": 3,
+      "tier": "integration",
+      "stage": "awaiting-title",
       "prompt": "把这篇文章转成微信公众号格式：https://www.anthropic.com/news/claude-4",
-      "expected_output": "完整的微信公众号文章，内容提炼文章核心论点，自然带出作者/机构背景，无 Markdown 结构违规，结尾有来源注记（原文链接格式）。",
       "files": [],
+      "expected_output": "来源可完整获取时产出可核对的公众号初稿和标题候选；无法获取时准确报告状态和可完成范围。",
       "assertions": [
-        {"text": "article.md 文件存在于输出目录"},
-        {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
-        {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
-        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
-        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
-        {"text": "article.md 末尾包含「内容来源」字样，且来源注记中包含 anthropic.com 链接"},
-        {"text": "article.md 正文字数不少于 600 字（网页文章可能比视频文章短）"},
-        {"text": "article.md 中提到 Claude（或 Claude 4 等变体）"},
-        {"text": "article.md 和 transcript.md 中官方术语翻译前后一致，有成熟中文译法的术语使用中文锚点"},
-        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致 Anthropic、Claude、模型或用户混淆"},
-        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑改写成互不相干的并列句"}
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "source",
+          "text": "获取状态与来源完整性分开记录；服务失败不等于没有来源，无法完整获取时说明缺口而非捏造内容。"
+        }
       ]
     },
     {
       "id": 4,
+      "tier": "integration",
+      "stage": "awaiting-title",
       "prompt": "把这篇官方指南改成微信公众号文章：https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices",
-      "expected_output": "完整的微信公众号文章，不能把官方指南压缩成泛泛摘要；需要保留原文关键建议、参数细节和示例。英文 prompt 示例或代码块必须中英文对照放在同一个代码块内，文章无 Markdown 结构违规、无 AI 腔，结尾有来源注记。",
       "files": [],
+      "expected_output": "来源可完整获取时产出可核对的公众号初稿和标题候选；无法获取时准确报告状态和可完成范围。",
       "assertions": [
-        {"text": "article.md 文件存在于输出目录"},
-        {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 正文中 H2 章节标题只在长文且主题切换明显时使用，不能出现 H3 或更深层级标题"},
-        {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行"},
-        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
-        {"text": "article.md 保留原文关键 prompt 示例或代码块，而不是全部改写成二手概括"},
-        {"text": "英文 prompt 示例或代码块在同一个代码块内提供中文参考译文"},
-        {"text": "article.md 末尾包含「内容来源」字样，且来源注记中包含 docs.anthropic.com 链接"},
-        {"text": "transcript.md 文件存在于输出目录，且不是只包含摘要要点"},
-        {"text": "官方指南中的术语翻译前后一致，有成熟中文译法的术语使用中文锚点"},
-        {"text": "示例和关键建议翻译后不能因本地化改写丢失条件、限制或操作对象"},
-        {"text": "article.md 中关键论点的主语和谓语清楚，不能因省略主语导致 Anthropic、Claude、开发者或模型混淆"},
-        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑改写成互不相干的并列句"}
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "source",
+          "text": "获取状态与来源完整性分开记录；服务失败不等于没有来源，无法完整获取时说明缺口而非捏造内容。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "关键参数、条件与建议保持完整；采用的代码保持原语法，中文解释置于代码块外或合法注释，不能损坏代码。"
+        }
       ]
     },
     {
       "id": 5,
+      "tier": "local",
+      "stage": "draft",
       "prompt": "把下面这段英文整理成本地化中文转录 transcript.md，并按 youtube-to-wechat 的翻译质量规则自查：I think some aspects of continual learning, long-horizon reasoning, and memory are still unsolved. Demis co-founded DeepMind with one mission: solve intelligence. AlphaFold, a system that solved the 50-year protein folding problem, changed biology. I am confident the components you mentioned will be part of the final AGI architecture. Maybe current systems can scale to get to there, but there may be one or two big ideas left to crack. The brain does experience replay during REM sleep. DQN mastered Atari through experience replay. The current approach is brute force: tape together the solution by putting everything into the context window, even though every decision still has a cost to find the relevant item. If we compare the context window to human working memory, the gap is obvious. Today, many thinking modes and chain of thought techniques can be traced back to AlphaGo. One of our biggest strengths is distilling these capabilities into smaller models, and we have to serve the largest AI surfaces like Search AI Overviews, AI Mode, the Gemini app, and Gemini across Google products.",
-      "expected_output": "输出 transcript.md，要求中文自然、本地化准确，显性处理主语切换、上下文指代、成熟术语译法、同位语拆分、类比因果、整段逻辑和中文搭配。",
       "files": [],
+      "expected_output": "只生成所请求的本地化 transcript.md，不扩展成文章、标题或封面任务。",
       "assertions": [
-        {"text": "transcript.md 文件存在于输出目录"},
-        {"text": "transcript.md 中 continual learning、long-horizon reasoning 和 memory 仍未解决这句主语清楚，不能只写成「这些问题仍然没有解决」导致判断主体不明"},
-        {"text": "transcript.md 中把 solve intelligence 处理为「解决人工智能」，不能写成「解决智能」"},
-        {"text": "transcript.md 中主语切换清楚，DeepMind 使命处应显性表达为「公司的使命」或等价说法"},
-        {"text": "transcript.md 中 AlphaFold 的同位语说明被拆开表达，不能写成「蛋白质结构预测这个生物学中持续 50 年的重大难题」这类长定语压句"},
-        {"text": "transcript.md 中 components 按 AGI 架构语境译为「关键要素」或等价说法，不能机械译为「组件」"},
-        {"text": "transcript.md 中 get to there 按上下文还原，不能出现「达到那里」"},
-        {"text": "transcript.md 中不能出现「攻克想法」或「攻克的大想法」，应表达为「攻克难题」或等价说法"},
-        {"text": "transcript.md 中 experience replay 译为「经验回放」，不能裸留英文"},
-        {"text": "transcript.md 中 brute force 译为「粗暴」或「原始粗暴」，不能写成「现在的方法很 brute force」"},
-        {"text": "transcript.md 中 context window 译为「上下文窗口」，working memory 译为「工作记忆」"},
-        {"text": "transcript.md 中 today 表示现阶段或如今，不能机械译成「今天」"},
-        {"text": "transcript.md 中 thinking modes 译为「思考模式」，chain of thought 译为「推理链条」"},
-        {"text": "transcript.md 中不能出现「最大的强项」；have to serve 应译为「需要服务」或语气相当的中文，不能机械译为「必须服务」"},
-        {"text": "transcript.md 中 DQN 与大脑 REM 的类比关系清楚，不能只写成互不相干的并列句"},
-        {"text": "transcript.md 中保留胶带拼方案、把所有内容塞进上下文窗口、查找相关信息有成本之间的完整逻辑，不能翻成碎句"}
+        {
+          "dimension": "delivery",
+          "text": "生成 transcript.md，保持请求仅整理底稿的范围。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "保留持续学习、长程推理和记忆仍有未解决部分的判断及主体。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "DeepMind 的使命和 AlphaFold 的贡献归属清楚；不把 solve intelligence 强制限于一个指定译词。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "保留 AGI 架构的信心、可能仍需重要突破的不确定性及其对比关系。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "保留 REM、DQN 的经验回放类比，不添加原文未给出的科学证明。"
+        },
+        {
+          "dimension": "readability",
+          "text": "交代把资料堆入上下文窗口与检索相关信息仍有成本之间的关系，拆句后逻辑不断裂。"
+        },
+        {
+          "dimension": "expression",
+          "text": "术语语义稳定、代词指代清楚；允许思维链、推理链条等语境准确的表达，不强制具体同义词。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "保留蒸馏能力、服务多个大规模产品的必要性和产品名称，不机械削弱或加强原文语气。"
+        }
       ]
     },
     {
       "id": 6,
+      "tier": "local",
+      "stage": "awaiting-title",
       "prompt": "把本地这份指南改成微信公众号文章：evals/fixtures/agent-eval-playbook.md",
-      "expected_output": "完整的微信公众号文章，从本地 Markdown 文件（Path C）读取全文，不能把这份长指南压成泛泛摘要。八条建议（从真实失败出发、能力评估与回归评估分离、用断言而非感觉打分、每个案例多跑几次、保留不优化的留出集、记录 trace 而非只看输出、让评分便宜到每次提交都能跑、把 eval 当活的资产）都要保留并本地化翻译；原文代码示例保留在代码块内并配中文参考译文。文章无 Markdown 结构违规、无 AI 腔，结尾有本地文档格式的来源注记。",
-      "files": ["evals/fixtures/agent-eval-playbook.md"],
+      "files": [
+        "evals/fixtures/agent-eval-playbook.md"
+      ],
+      "expected_output": "覆盖长指南八项建议的公众号初稿、证据底稿和标题候选，保留原代码功能及中文解释。",
       "assertions": [
-        {"text": "article.md 文件存在于输出目录"},
-        {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行，且没有 H3 或更深层级标题"},
-        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
-        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
-        {"text": "article.md 保留了原文八条建议的核心内容，没有压成三五句的泛泛摘要（八条建议对应的要点都能在正文中找到）"},
-        {"text": "article.md 保留原文代码示例（grade_case / run_suite 评分脚本），并在同一代码块内提供中文参考译文，而不是删掉或改写成二手概括"},
-        {"text": "transcript.md 文件存在于输出目录，且不是只包含摘要要点（保留了八条建议的结构）"},
-        {"text": "article.md 末尾包含「内容来源」字样，采用本地文档格式（含文档标题，不编造不存在的 URL）"},
-        {"text": "article.md 正文字数不少于 1000 字（长指南本地化后不应被压成短摘要）"},
-        {"text": "有成熟中文译法的术语（如 trace、assertion、regression、held-out set）使用中文锚点或「中文（English）」格式，不能无判断整段保留英文"},
-        {"text": "article.md 中关键因果、转折和类比关系清楚，不能把原文逻辑改写成互不相干的并列句"}
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "coverage",
+          "text": "八项建议的核心内容都能定位，不要求逐句照搬或最低字数。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "grade_case / run_suite 的可执行语法和逻辑保持；中文说明不破坏引号、冒号、列表等代码内容。"
+        },
+        {
+          "dimension": "source",
+          "text": "底稿记录八项建议与出处，正文使用本地文档来源注记，不编造 URL。"
+        }
       ]
     },
     {
       "id": 7,
+      "tier": "local",
+      "stage": "awaiting-title",
       "prompt": "把下面这段中文内容改写成一篇微信公众号文章：我做产品经理快十年了，最近这一年最大的感受是，AI 把我过去引以为豪的很多技能都贬值了。以前我最值钱的能力是写需求文档、画原型、协调上下游，但现在这些事情 AI 都能做个七七八八。我一开始是有点焦虑的，甚至有点抵触，觉得自己是不是要被取代了。后来我想明白了一件事：真正不会被取代的，是判断力，是知道该做什么、不该做什么的那种品味。工具越强，方向感就越值钱。我现在每天花在写文档上的时间少了很多，但是花在想清楚到底要解决什么问题上的时间多了很多。我跟团队说，以后我们招人，不再看你会不会用某个工具，而是看你有没有判断力，有没有那种一眼看出哪个问题最值得做的直觉。这件事对整个行业的影响其实还挺大的，只是大部分人还没反应过来。",
-      "expected_output": "完整的微信公众号文章，源语言是中文（Path D 文本片段），不需要翻译也不需要双语对照。任务是把这段口语化的中文反思结构化、收紧成可发布的公众号正文：保留核心判断（技能贬值、判断力与品味不可替代、方向感越来越值钱、招人标准从工具能力转向判断力），清掉「七七八八」「有点焦虑的，甚至有点抵触」这类冗余口语和 AI 腔，但不得为凑字数编造原文没有的事实、案例或数字。文章无 Markdown 结构违规、无 AI 腔。",
       "files": [],
+      "expected_output": "收紧中文反思，保留判断与来源身份边界，不靠新增事例或数字扩充篇幅。",
       "assertions": [
-        {"text": "article.md 文件存在于输出目录"},
-        {"text": "article.md 第一行是 `# [标题]` 格式（以 # 空格开头）"},
-        {"text": "article.md 中没有 `- ` 或 `* ` 开头的无序列表行，且没有 H3 或更深层级标题"},
-        {"text": "article.md 正文（不含标题和来源注记）没有冒号、破折号和双引号"},
-        {"text": "article.md 正文没有「深入」「深度」「全面」「值得注意的是」「综上所述」等 AI 腔词语"},
-        {"text": "article.md 保留原文四个核心判断（技能被 AI 贬值、判断力与品味不可替代、方向感越来越值钱、招人标准从会用工具转向有判断力）"},
-        {"text": "article.md 清掉了原文的冗余口语（不出现「七七八八」原词，不照搬「有点焦虑的，甚至有点抵触」这类口水句），是结构化重写而不是逐句复制粘贴"},
-        {"text": "article.md 没有为凑字数加入原文没有的事实、案例、公司名或数字（中文源改写不得脑补来源里没有的内容）"},
-        {"text": "transcript.md 文件存在于输出目录"},
-        {"text": "中文源不应反向翻成英文再翻回，也不应无谓塞入原文没有的英文术语"},
-        {"text": "article.md 正文字数不少于 300 字，但篇幅与原文信息量相称，不靠注水堆字数"}
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "coverage",
+          "text": "保留作者对技能变化、判断力与品味、方向感和招聘标准的四项观察。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "个人经验与预测不升级为已被证明的全行业事实，不捏造身份、案例或数字。"
+        },
+        {
+          "dimension": "expression",
+          "text": "去除影响阅读的重复口语但不强制删某个词；长度与信息量匹配，不设最低字数。"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "tier": "local",
+      "stage": "awaiting-title",
+      "prompt": "把这份工作坊记录整理成解释型公众号，读者是没有看过演示的产品负责人：evals/fixtures/agent-demo.md",
+      "files": [
+        "evals/fixtures/agent-demo.md"
+      ],
+      "expected_output": "可独立理解演示发现的公众号初稿。",
+      "assertions": [
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "readability",
+          "text": "读者能说明输出方式含糊与权限限制怎样导致失败，以及需要明确输出要求；不依赖操作回放或截图。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "13/16 表示尝试写文件次数，不改成全部失败或可靠的普遍发生率。"
+        },
+        {
+          "dimension": "selection",
+          "text": "省去无关点击、窗口切换和接线；不必删除理解原因所需的机制。"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "tier": "local",
+      "stage": "awaiting-title",
+      "prompt": "把这份工作坊记录整理成可复现的中文教程，面向会运行 Python 的初学者，保留能照做的示例：evals/fixtures/agent-demo.md",
+      "files": [
+        "evals/fixtures/agent-demo.md"
+      ],
+      "expected_output": "前提、步骤、代码与预期结果完整的教程初稿。",
+      "assertions": [
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "coverage",
+          "text": "保留 Python 前提、保存和执行示例、触发错误、修改 delivery 为 text、预期输出等复现所需信息。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "示例代码语法有效，明确它模拟交付工具而非完整真实模型；不编造实际 API 或运行结果。"
+        },
+        {
+          "dimension": "selection",
+          "text": "允许必要步骤和代码，不机械应用解释型稿件省略过程的默认。"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "tier": "local",
+      "stage": "awaiting-title",
+      "prompt": "根据这份实验记录写一篇公众号短文：evals/fixtures/evaluation-results.md",
+      "files": [
+        "evals/fixtures/evaluation-results.md"
+      ],
+      "expected_output": "比较口径、观点归属和不确定性准确的短文。",
+      "assertions": [
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "正确交代 2/16=12.5%、3/48=6.25%，不能把通过数量增加写成通过率提高。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "48 次来自同一批 16 个输入各重复三次，不宣称独立大样本证明因果。"
+        },
+        {
+          "dimension": "attribution",
+          "text": "保留林研究员对下一季度表现的预期及不确定性，不变成机构承诺或已经实现的事实。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "多个方案比较不能被擅自命名为多个对照组。"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "tier": "local",
+      "stage": "awaiting-title",
+      "prompt": "把下面这段中文改成公众号短文：我们试着让评测模型读报告引用的材料。补充材料后，它能找到先前无法核实的数字。这个发现提示我们，评测也需要足够的上下文。",
+      "files": [],
+      "expected_output": "完成正文与标题候选，再根据第二轮选择完成 Markdown。",
+      "assertions": [
+        {
+          "dimension": "delivery",
+          "text": "正文及来源注记可用；未指定标题时提供候选并等待确认，正式 H1 和最终封面不是首轮验收条件。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "重要数字、专名、归属和限定条件可追溯；不把主观判断或平台承载的观点写成机构事实。"
+        },
+        {
+          "dimension": "readability",
+          "text": "目标读者无需打开原视频或网页就能理解主要发现及必要证据。"
+        },
+        {
+          "dimension": "expression",
+          "text": "中文表达清楚、结构服务稿型；语义准确的同义表达、必要标点、引语和列表可接受，不按禁词清零评分。"
+        }
+      ],
+      "turns": [
+        {
+          "user": "标题就用《评测也需要上下文》，正文定稿。只交付 Markdown，不需要图片。",
+          "stage": "ready",
+          "assertions": [
+            {
+              "dimension": "delivery",
+              "text": "第一行 H1 为用户选定标题，正文与来源注记完整。"
+            },
+            {
+              "dimension": "scope",
+              "text": "不重新索要已经给出的标题确认，不生成未请求的封面或双语稿。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "tier": "local",
+      "stage": "ready",
+      "prompt": "润色这篇已有中文稿，保留标题、所有代码、直接引语和链接。只处理本地稿件：evals/fixtures/protected-content.md",
+      "files": [
+        "evals/fixtures/protected-content.md"
+      ],
+      "expected_output": "局部润色且完整保留受保护内容的稿件。",
+      "assertions": [
+        {
+          "dimension": "fidelity",
+          "text": "Python 代码和 URL 的字符保持不变，尤其冒号、半角逗号、问号、双引号、查询参数。"
+        },
+        {
+          "dimension": "attribution",
+          "text": "直接引语保留引用标识和说话人，不改成普遍事实。"
+        },
+        {
+          "dimension": "delivery",
+          "text": "保留已有 H1，不重新要求选标题；来源注记仍在。"
+        },
+        {
+          "dimension": "expression",
+          "text": "已选标题中的“真的”和技术词“操作系统”“统计显著性”不因禁词扫描自动删除。"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "tier": "local",
+      "stage": "draft",
+      "prompt": "这里有一个两小时视频的前五分钟字幕，请把完整视频整理成公众号：evals/fixtures/partial-source.md。当前没有其他来源可用。",
+      "files": [
+        "evals/fixtures/partial-source.md"
+      ],
+      "expected_output": "诚实说明来源缺口，必要时仅整理已提供范围，不声称完整视频已处理。",
+      "assertions": [
+        {
+          "dimension": "source",
+          "text": "明确只有前五分钟，完整性为 partial，不能声称视频无字幕或已获得完整内容。"
+        },
+        {
+          "dimension": "fidelity",
+          "text": "不猜测未提供的实验结果和后续观点，不将片段写成完整来源结论。"
+        },
+        {
+          "dimension": "delivery",
+          "text": "不把该任务标记为整个两小时视频的 ready；说明继续所需材料或可交付的已知范围。"
+        }
       ]
     }
   ]

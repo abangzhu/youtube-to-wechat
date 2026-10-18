@@ -1,244 +1,124 @@
 ---
 name: youtube-to-wechat
-description: 把任意来源的内容变成一篇可发布的微信公众号文章，覆盖从字幕提取、原文整理、人物背景、内容分析、中文写作、自审重写到标题和封面图的完整流程。支持 YouTube 视频、网页文章、PDF/Markdown/TXT 本地文档。只要用户提供内容来源（URL、视频链接、文件路径、文本片段），并且目标是中文文章、公众号稿、翻译整理、长文改写、内容总结、视频/文章/PDF 转写，就使用此 skill。边界划分：用户已有成稿、只想做纯写作风格润色而没有外部来源时，用 khazix-writer；只想要翻译、不需要改成公众号文章时，用 baoyu-translate。只要最终产物是「从某个外部来源做出一篇可发布的中文公众号文章」，就用本 skill。
+description: 将视频、网页、PDF/Markdown 等外部来源改写成可发布的中文微信公众号文章，或完成该流程中的整理、修订、配图和发布准备。用于明确要求公众号稿或基于来源的中文文章；普通问答、仅摘要或仅翻译不自动触发。明确调用本技能时可只执行用户指定的步骤。
 ---
 
 # 内容到微信公众号
 
-把 YouTube 视频、网页文章或本地文档转成一篇可发布的中文公众号文章。先获取完整来源，再提炼、写稿、复查和准备发布材料。
+目标是让没有看过来源的读者理解重要发现，同时保留事实依据。按任务选择必要步骤，复用已有材料；局部改稿不重启下载、翻译和封面流程。
 
-## 资源导航
+## 规则优先级
 
-按任务需要读取 reference，避免一次加载全部规则。
+- 用户明确要求决定范围、读者、稿型、交付物和已授权操作；不能为风格偏好改变来源事实。
+- 事实保真是内容底线：保留主体、归属、因果、概率、比较口径和适用条件。来源观点、事实与编辑推论需要可区分。
+- 在上述边界内，优先读者理解和当前稿型的用途，其次采用默认文风。例句和禁词提示只供诊断，不是必须复刻的答案。
+- 格式、引号与术语拼写以 [narration-and-formatting.md](references/narration-and-formatting.md) 为唯一规范；来源与素材状态以各专项指南的契约为准。冲突时采用更具体的适用规则，不反复改回去。
 
-| 文件 | 何时读取 |
+## 先确定稿型和交付范围
+
+从用户请求推断目标读者、已有知识和阅读用途。信息足够就执行；只有会显著改变成稿的重要歧义才询问。可在工作底稿中简记选择，不强制用户填表。
+
+| 稿型 | 取舍 |
 | --- | --- |
-| [references/translation-quality.md](references/translation-quality.md) | 英文来源、双语对照、术语、本地化、翻译腔和事实核查 |
-| [references/article-structure.md](references/article-structure.md) | 正文结构、开头、来源交代、段落组织、新概念定义 |
-| [references/ai-voice-prohibitions.md](references/ai-voice-prohibitions.md) | **写稿前**扫一遍——词汇级 AI 腔禁词 + 基础句法警示(破折号、强调副词、文学化动词) |
-| [references/sentence-level-errors.md](references/sentence-level-errors.md) | **段级精修时**查阅——句法骨架错误、多重定语、词序、表语翻译腔 |
-| [references/narration-and-formatting.md](references/narration-and-formatting.md) | **写稿后期**校对——转述腔填充句、标点、引号、加粗、术语书写 |
-| [references/self-review.md](references/self-review.md) | 写完 `article.md` 后做读者 / 编辑 / 事实三层评估 + 一份机械 grep checklist |
-| [references/title-and-publishing.md](references/title-and-publishing.md) | 拟标题、章节标题、来源注记和发布前检查 |
-| [references/youtube-transcript-fallback.md](references/youtube-transcript-fallback.md) | `yt-dlp` 失败、字幕截断、需要时间戳或视频无字幕 |
-| [references/visual-capture.md](references/visual-capture.md) | 正文必须插入视频截图、代码画面、架构图、UI 或图表 |
-| [references/article-summary-image.md](references/article-summary-image.md) | 文章顶部插入 HTML 渲染的摘要图,适用方法论 / 工作流 / 分层结构类内容 |
-| [references/cover-art-guide.md](references/cover-art-guide.md) | 选择封面图路径(抓现成图 vs HTML 模板生成) |
-| [references/cover-card-template.md](references/cover-card-template.md) | 用极简纯白卡片模板生成原创封面(含 HTML 模板、字段表、渐变变体、Chrome headless 截图命令) |
-| [references/reader-resonance.md](references/reader-resonance.md) | **写稿前**扫一遍——三条读者共鸣规则：价值翻译、具体读者、分享触发点 |
-| [references/tool-adapters.md](references/tool-adapters.md) | 在 Codex、Claude Code、Cursor 等不同运行环境里选择等价工具 |
-| [references/publish-to-notion.md](references/publish-to-notion.md) | 把成稿连文带图发布到 Notion 知识库(Notion MCP 建页 + 分批灌正文 + external 图链 + 图片 ID 映射) |
+| 解释型公众号，默认 | 结论、必要原因、关键证据与适用边界。现场演示先讲发现，省去点击、接线和重复排错过程。 |
+| 可复现教程 | 保留前提、必要步骤、代码、预期结果与关键失败处理。 |
+| 忠实整理或译稿，明确要求时 | 保留约定范围内的原文结构、信息、归属和限定条件。 |
 
-## 总体流程
+完整来源进入底稿，不等于每个细节都要进入正文。官方指南、课程和长文按重要信息决定篇幅，不凭时长套字数，也不为简短而丢失决定结论的条件。明确要求完整整理时，逐项核对覆盖率。
 
-1. 获取完整来源，保存原始转录或原文。
-2. 整理 `transcript.md` 工作底稿。
-3. 调查作者、主播、嘉宾或机构背景。
-4. 从来源作者视角和目标读者视角分析内容。
-5. 写 `article.md` 初稿。
-6. 对照原文检查遗漏的高价值内容。
-7. 按三层评估重写，直到通过。
-8. 准备标题、章节标题、来源注记和封面图。
+默认交付正文、来源注记与标题候选。完整双语、深入人物背景、封面、摘要图和发布是按需产物；用户已选择的归档或发布配置继续有效。封面与摘要图在标题和正文确认后生成，避免重复制作。
 
-## Step 1 获取来源
+## 1. 获取并核验来源
 
-先判断来源类型。
+新任务目录用 YYYY-MM-DD-来源ID或slug，放在用户工作区，不能放入技能安装目录。原始来源只读保存；已有任务继续使用原目录。
 
-| 来源类型 | 判断条件 | 路径 |
-| --- | --- | --- |
-| YouTube 视频 | URL 包含 `youtube.com` 或 `youtu.be` | 路径 A |
-| 网页文章 | 其他网页 URL | 路径 B |
-| 本地文件 | `.pdf`、`.md`、`.txt`、`.docx` 等文件路径 | 路径 C |
-| 文本片段 | 用户直接粘贴内容 | 路径 D |
+| 来源 | 处理 |
+| --- | --- |
+| YouTube | 读取 [字幕获取与回退](references/youtube-transcript-fallback.md)。优先原声人工字幕，其次原声自动字幕；译文另存。 |
+| 网页 | 提取完整正文、代码、表格和元信息；普通抓取不完整时使用当前可用浏览器工具，排除导航和广告。 |
+| PDF、DOCX、Markdown、TXT | 用适合格式的工具读取全文；表格、扫描页和图片承载论点时检查原页，不能把抽取文本当作完整视觉内容。 |
+| 用户粘贴文本 | 保存来源文本或放入底稿的原文段，不添加原文没有的作者、日期或 URL。 |
 
-### 路径 A YouTube 视频
+工具选择见 [tool-adapters.md](references/tool-adapters.md)。一次工具失败只说明本次获取失败，不等于来源不存在。区分获取状态与内容完整性；信息不足时明确限制，不把片段冒充完整来源。
 
-优先用 `yt-dlp` 下载字幕。先尝试中文，再尝试英文。
+视频和长来源保存原始文件与 source.json；字幕元数据、覆盖范围与 complete / partial / unknown / unavailable 状态遵循 [字幕契约](references/youtube-transcript-fallback.md)。关键数字、引用和论点要能定位回原文时间戳、页码或章节。
 
-```bash
-yt-dlp --write-auto-sub --sub-lang zh-Hans --skip-download --cookies-from-browser chrome -o "%(title)s" "VIDEO_URL"
-yt-dlp --write-auto-sub --sub-lang en --skip-download --cookies-from-browser chrome -o "%(title)s" "VIDEO_URL"
-```
+VTT 可运行：
 
-如果得到 `.vtt` 文件，用脚本解析：
+~~~bash
+python /实际技能目录/scripts/parse_vtt.py --keep-timestamps /任务目录/source.vtt
+~~~
 
-```bash
-python scripts/parse_vtt.py "字幕文件目录路径"
-python scripts/parse_vtt.py --keep-timestamps "字幕文件目录路径"
-```
+输出时间戳阅读文本与无损 cue JSON，原 VTT 保留。脚本默认拒绝覆盖；只有确认是要重新生成的派生文件时使用 --overwrite。不要把普通 TXT 当 VTT 输入。
 
-默认输出 `_parsed.txt` 纯文本，适合快速整理 `transcript.md`。需要截图、英文双语对照或后续按时间点核查时，必须同时生成 `_timestamped.txt`，并保留原始 `.vtt`，不要只留下去时间戳文本。
+## 2. 建立证据底稿
 
-`yt-dlp` 失败、字幕缺失、字幕截断、需要时间戳或 YouTube 反爬时，读取 [references/youtube-transcript-fallback.md](references/youtube-transcript-fallback.md)。不要反复尝试该文档列为失效的路径。
+transcript.md 记录主旨、主要观点、关键证据及定位、必要限定、待核查点、读者与稿型。短文本可以用一份精简底稿；不要为了文件数量制造重复内容。
 
-英文视频必须生成 `bilingual-transcript.md`。双语对照用于核查翻译质量，不能用 `transcript.md` 替代。格式：
+引用原话保持准确，自动字幕的修订与编辑注和原始记录分开。事实核查优先针对影响主旨的数字、实体、归属和因果；发现来源本身有误时说明核查依据，不悄悄改成讲者说过正确答案。
 
-```markdown
-[时间戳] 英文原文（逐字保留）
+英文来源按需读取 [translation-quality.md](references/translation-quality.md)。普通改写只需给关键原话保留原文与译文；用户要求完整双语或归档配置需要时生成 bilingual-transcript.md，不能用概述替代忠实翻译。
 
-中文忠实译文
+人物背景只调查解释其观点所需的身份、相关经历或利益关系。资料不足时保持简短，不设人物小传最低字数。
 
----
-```
+## 3. 写稿
 
-翻译前读取 [references/translation-quality.md](references/translation-quality.md) 的处理层级和翻译前上下文标记。
+先确定全文主旨、读者需要解决的问题和支持主旨的证据，再组织段落。写稿时按需要选读：
 
-### 路径 B 网页文章
+| 文件 | 使用时机 |
+| --- | --- |
+| [article-structure.md](references/article-structure.md) | 规划结构、处理开头、决定案例与演示的取舍 |
+| [reader-resonance.md](references/reader-resonance.md) | 判断全文或章节对目标读者的意义 |
+| [narration-and-formatting.md](references/narration-and-formatting.md) | 格式、归因、引语、术语与代码处理 |
+| [sentence-level-errors.md](references/sentence-level-errors.md) | 某句话主语、因果或搭配难懂时定向精修 |
+| [ai-voice-prohibitions.md](references/ai-voice-prohibitions.md) | 发现空泛、套话或重复转折时诊断，不要求禁词清零 |
 
-读取完整正文，保留段落、小节标题、代码块、示例和来源元信息。保存为 `full_transcript_zh.txt` 或 `full_transcript_en.txt`。
+解释型文章采用连续段落，必要时用 H2；教程可以用步骤、列表、表格和代码。结构服务理解，不以禁止某个 Markdown 元素代替编辑判断。代码保留原语法，中文说明放块外或合法注释内，不能将译文塞进可执行代码破坏语法。
 
-如果普通网页抓取只返回摘要、缺少代码块、分页不完整或官方文档被截断，使用可用的浏览器自动化工具提取 `document.body.innerText`，分段保存。不同环境的工具选择见 [references/tool-adapters.md](references/tool-adapters.md)。
+现场演示直接写发现与原因，保留支持结论的数字、比较条件和边界。遮住图片后，读者仍应理解关键结论；真正需要复现时保留步骤，不把规则泛化为删除所有过程。
 
-### 路径 C 本地文件
+## 4. 自审与修订
 
-读取本地文件完整内容。PDF 较长时分段处理，必要时用 PDF 文本抽取工具保存原始文本。英文 PDF 保存为 `full_transcript_en.txt`，中文文档保存为 `full_transcript_zh.txt`。
+按 [self-review.md](references/self-review.md) 依次检查事实、读者理解、表达与格式。事实错误必须修复；风格提示允许判断后保留。只修改已识别的问题，没有新问题时停止，不规定每轮必须改几处。
 
-### 路径 D 文本片段
+只读检查辅助命令：
 
-把用户粘贴的内容保存为原始底稿。内容较短时仍生成 `transcript.md`，但可以不生成单独的 `full_transcript_*.txt`，除非用户要求可追溯底稿。
+~~~bash
+python /实际技能目录/scripts/check_article.py /任务目录/article.md --stage awaiting-title
+~~~
 
-## Step 2 生成工作底稿
+检查器报告格式错误和候选提示，不改写文件，也不能证明事实准确。改完复查受影响内容；事实与格式问题解决、重要理解障碍消除、剩余提示已判断后即可交付。
 
-所有来源都生成 `transcript.md`。底稿要服务写稿，不是简单摘要。保留：
+## 5. 标题、素材与交付状态
 
-- 作者、主播、嘉宾或机构名字
-- 每个话题段的主要论点
-- 重要原话
-- 关键数字、案例、时间线、产品名和术语
-- 来源作者主动强调的判断
-- 读者可能直接带走的方法或反常识发现
+按 [title-and-publishing.md](references/title-and-publishing.md) 拟 3–5 个标题。用户未指定标题时保留候选，确认后再写正式 H1；用户已明确授权自行定稿时直接选择并完成。已有标题的局部修订不重新触发选择。
 
-英文来源整理底稿时同步本地化。读取 [references/translation-quality.md](references/translation-quality.md)，处理术语、缩写、代词、泛指词、长句、主语切换和翻译腔。
+| 状态 | 验收 |
+| --- | --- |
+| draft | 正在整理或修订；标出未解决的来源限制。 |
+| awaiting-title | 正文及来源已核对，标题候选可供选择；允许无 H1，最终封面不要求存在。 |
+| ready | 用户已选定或指定标题，H1 与正文一致；请求的封面、配图等交付物已完成。只写稿的任务不要求生成图片。 |
 
-内容压缩程度按来源类型决定。访谈、播客和演讲提炼核心论点并保留关键细节。官方文档、产品指南、技术规范和操作手册不能压成摘要，原文有几条建议就保留几条，有示例就保留并翻译。**大学课程、讲座和教学类视频同样不能压成摘要**：这类来源信息密度高、每句话都可能是一个可复用的知识点，整理底稿时不要因为"这段展开太细"就先自行归纳成一句结论，先把具体的人名、机构名、产品名、数字、案例和判断逐条记下来，宁可 `transcript.md` 写得比一般访谈长，也不要在这一步就先丢细节——丢了的细节到写稿阶段基本捞不回来。
+状态是稿件交付状态，独立于 source.json 的来源完整性状态。部分来源只有在用户明确接受该范围、正文准确说明限制时，才可作为该范围的完整交付。
 
-**整理来源里一带而过提到的第三方人名、机构名、产品名和基准测试名时，逐一标出原文出处**，不要凭上下文猜一个"听起来合理"的名字或者用"某个内部模型""一款 Agent 产品"这类泛称顶替。课程类内容常常在讲一个案例时只带一句提到具体是谁、哪家公司、哪个产品做的（例如"OpenAI 的一款模型攻入了 Hugging Face"、"Anthropic 的 Carlini 做过一个实验"），这些细节是判断可信度和可追溯性的关键，写稿时如果记不清来源原话，就在 `transcript.md` 里留一条待核查标记，不要跳过或替换。
+需要正文图片时读 [visual-capture.md](references/visual-capture.md)，按其中 assets.json 契约记录素材；无默认配图数量。需要封面时读 [cover-art-guide.md](references/cover-art-guide.md)，使用模板再读 [cover-card-template.md](references/cover-card-template.md)。摘要图仅在帮助理解时使用，见 [article-summary-image.md](references/article-summary-image.md)。
 
-## Step 3 调查背景
+文章末尾注明来源，如：
 
-有具体人物时，调查作者、主播和主要嘉宾。匿名文档或纯机构公告可跳过人物小传，改为调查机构、产品或事件背景。
+~~~text
+内容来源，频道「视频标题」，原视频链接。
+内容来源，作者／机构「文章标题」，原文链接及已知发布日期。
+内容来源，作者／机构「文档标题」，已知日期或版本。
+~~~
 
-背景调查的目标不是堆简历，而是理解观点从哪里长出来。重点看：
+不补造缺失元信息。读者需要具体证据时，在相应论点旁附来源，不能只靠文末总链接。
 
-- 成长、教育、职业关键节点
-- 思想形成和明显转向
-- 公开失败、低谷、代价和反复提到的经历
-- 价值观、反对对象和同行位置
+用户要求发布到 Notion 时再读 [publish-to-notion.md](references/publish-to-notion.md)。根据当前连接器能力执行已授权操作，记录结果与缺项；准备好本地稿不等于发布成功。
 
-输出一份 `background.md` 或放入 `transcript.md` 的背景段。资料丰富时写 1000-2500 字，资料有限时写 300-800 字。
+## 维护与回归
 
-## Step 4 分析内容
+每条规则只在一个文件中定义；其他文件链接过去。新增反馈先成为案例，只有确认共同错误机制与适用边界后才提升为规则。精选对照见 [editorial-cases.md](references/examples/editorial-cases.md)。
 
-按顺序完成三次分析。
+修改脚本运行 python -m unittest discover -s tests。修改内容规则读取 [evals/evals.json](evals/evals.json)，按改动选对应固定材料做独立 forward-test；不要给测试者预期答案或诊断结论。来源获取与发布用 integration case 单独验证，不把网络可用性混入文字质量分数。
 
-第一，来源作者视角。判断他主动选择传递什么，核心论点是什么，用了哪些案例、数据、故事和原话支撑。
-
-第二，读者视角。判断目标读者真正值得带走什么，尤其是反直觉发现、可操作方法、新角色、新工作方式、产品范式、金句和具体判断。
-
-第三,对照原文查漏。逐段检查是否漏掉重要论点、数字、时间线、失败案例、未来判断、关键术语或人物背景里的重要转折。开头钩子和来源交代段最容易翻车,具体陷阱见 [article-structure.md](references/article-structure.md) §3.x「来源交代段最常踩的五条陷阱」+ §3.x.收尾「章节末段最后一句话必须承担收尾力度」。
-
-## Step 5 写 `article.md`
-
-写稿前读取**三份必读** + 一份按需:
-
-- [references/article-structure.md](references/article-structure.md) — 正文结构、开头钩子、来源交代、段落推进
-- [references/ai-voice-prohibitions.md](references/ai-voice-prohibitions.md) — 一份词汇级 AI 腔禁词 + 基础句法警示,扫一遍提前规避
-- [references/reader-resonance.md](references/reader-resonance.md) — 价值翻译、具体读者快照、分享触发点；确认 Step 4 已写出读者快照
-- 英文来源再读取 [references/translation-quality.md](references/translation-quality.md)
-
-`sentence-level-errors.md` 和 `narration-and-formatting.md` 留到 Step 6 段级精修和后期校对时再读,这一步还用不上。
-
-文章长度按信息密度决定。30 分钟以内内容通常 1000-1500 字;1 小时左右 1500-2500 字;长访谈、高密度论文、官方指南、**大学课程和教学类讲座**可超过 2500 字，甚至到 4000 字以上。判断标准是重要观点、案例和证据是否说清楚，不是字数本身。
-
-**课程 / 讲座 /教学类视频不要被"公众号文章应该多长"的经验字数束缚**。这类来源经常在一小时里塞进一个学科的完整框架（定义、案例、机制、训练方法、系统设计、作业与评分），每一层背后都有具体的技术细节、命名的工具软件、真实发生过的事故案例。压缩到"合理长度"往往意味着把这些具体细节磨成几句方法论概括，读者失去的正是这类内容最大的价值——可核实、可复用的细节，而不是结论本身。写这类文章时，优先保留：具体案例中出现的人名/公司名/产品名（例如某个失控事故具体是哪家的 Agent 产品、哪个模型）、课堂提到的具体数字（百分比、参数规模、成绩占比、token 数量对比）、点名的论文/软件/基准测试。段级精修阶段如果发现某个具体细节因为担心"太长"被写成了模糊表述（"一个内部模型""某项测试"），应该回原文核实并把具体名字写回去，而不是保留模糊表述去压字数。
-
-写作要求：
-
-- 开头直接给场景、数字或判断，不先堆简历。
-- 自然交代来源、人物和技术背景，但不要把正文写成节目推荐或视频摘要。
-- 用连续段落推进，只有长文且主题切换明显时才加 H2。
-- 新概念首次出现时给一句中文定义。
-- 官方文档和指南类内容必须使用原文示例，不要自行发明例子。
-- 英文 prompt、代码块或官方模板保留英文，并在同一个代码块内给中文参考译文。
-- 涉及图、代码、UI、架构、流程、表格或屏幕指代时，先放 `[图:MM:SS - 描述]` 占位，并读取 [references/visual-capture.md](references/visual-capture.md)。
-
-## Step 6 自审与重写
-
-写完后读取 [references/self-review.md](references/self-review.md)，按三层检查：
-
-1. 读者视角：标题、开头、段落推进、结尾是否让读者愿意读下去。
-2. 编辑视角：结构、语气、AI 腔、转述腔、标点、加粗、术语和截图占位是否合规。
-3. 事实视角：专有名词、数字、因果、主语、限定语、翻译和延伸解读是否可追溯。
-
-先做语义自审,再跑 self-review.md 顶部的**机械检查 checklist**(grep 命令直接复制粘贴)。命中后回对应 reference 修正,然后再跑一遍直到全部干净。
-
-**整稿自审通过后,再做一遍段级精修**。整稿审视时大脑在"读完即懂"的速度里跑,会放过开头、第二段、章节衔接段这些高密度位置的深层问题;段级精修时大脑停在每一句话上,卡顿点会被放大。读者也是按段读文章的,在第一段卡住就退出。如果整稿自审只发现 0-1 个改动点,基本可以肯定段级精修还能挖出 3-5 个。段级精修必查项(无 grep 触发词的句法 / 词序问题)见 self-review.md「段级精修必查清单」,需要查阅深度规则时打开 [sentence-level-errors.md](references/sentence-level-errors.md);最后做格式校对时打开 [narration-and-formatting.md](references/narration-and-formatting.md)。整体方法见 [article-structure.md §3.y「段级互动重写比一次性整稿改更准」](references/article-structure.md)。
-
-协作场景里,鼓励用户做"段级反馈"——一段一段问"这段怎么样",而不是"整篇怎么样"。
-
-## Step 7 标题与发布准备
-
-定稿后读取 [references/title-and-publishing.md](references/title-and-publishing.md)。
-
-先写一句话锚定原文主旨，再拟 3-5 个标题。标题要和原文主旨一致，不为结构感硬凑数字清单，也不为反差感硬造二元对比。
-
-除非用户已经明确指定标题，否则先展示标题备选，不要擅自覆盖 `article.md` 第一行。用户确认后再写入：
-
-```markdown
-# 标题
-```
-
-封面图先选路径:**A. 抓取现成图**(YouTube 缩略图 / 网页 og:image / 文档截图)或 **B. HTML 模板生成原创卡片**(极简纯白 + 厚字重 + 可选渐变)。先准备方案和候选素材;最终 `cover.jpg` 和摘要图等用户确认标题与正文定稿后再生成,避免图文不一致。
-
-按内容类型选:
-
-- 访谈现场、嘉宾正脸、产品 demo 截图、关键图表 → **A**(现场画面本身就是钩子)
-- 观点解读、方法论综述、12 条预测、思考长文 → **B**(画面要传达主旨而非来源)
-- 数据报告、行业分析、技术深度 → 视来源决定:有强图表用 A,纯文字用 B
-- 哲学评论、文化随笔、文学性文章 → **B**(选 `claude-design-card` 那一脉的暖底衬线)
-
-两种路径的判断标准和实现见 [references/cover-art-guide.md](references/cover-art-guide.md);路径 B 的完整模板见 [references/cover-card-template.md](references/cover-card-template.md)。
-
-如果文章主题是方法论 / 工作流 / 分层结构 / 多阶段进阶,考虑在文章顶部加一张 HTML 渲染的摘要图作为视觉锚点(用 frontend-design + Chrome DevTools 截图)。这件事本身就是一种"实操即论证"的动作——用 HTML spec 形式呈现文章结构。流程见 [references/article-summary-image.md](references/article-summary-image.md)。
-
-## Step 8 发布到 Notion（按需）
-
-用户要求把成稿连文带图发布 / 上传到 Notion 知识库时（如「放到 Notion 写作/AI/Blog 转载目录下」），读取 [references/publish-to-notion.md](references/publish-to-notion.md)。要点：Notion MCP 的块类型 schema 是简化的但实际透传完整类型；本地图片不能上传，来源若有公网图 URL（`source.json` / og:image / X CDN）就用 external image block 直接引用；图片用 alt 里的 media ID 映射到 URL，不要按文件名顺序硬配；正文分批 `patch-block-children`。
-
-## 维护和回归测试
-
-修改本 skill 后读取 `evals/evals.json`，按改动风险挑选 forward-test 用例。最小回归集：
-
-- Case 5：英文片段本地化，覆盖代词、泛指词、术语和句法骨架。
-- Case 6：本地 Markdown 长指南，覆盖 Path C、代码块保留和避免压缩成摘要。
-- Case 7：中文文本片段，覆盖 Path D、中文改写和不得脑补事实。
-
-改动 YouTube、网页抓取、封面、截图或 Notion 发布路径时，再加跑对应来源类型的 case。forward-test 提示应像真实用户请求一样传入原始来源或文件，不要把预期答案、诊断结论或修复意图泄露给测试 agent。
-
-## 输出文件
-
-**工作目录命名（必须带日期前缀）**：每次任务开始时，新建的工作目录名一律用 `<今天日期 YYYY-MM-DD>-<VIDEO_ID 或来源 slug>` 格式，例如 `2026-09-12-v42opQpCy60`、`2026-09-12-gpt6-astra-looped-transformers`。不要只用裸的 `<VIDEO_ID>` 或裸 slug 建目录——vault 里同时堆着几十上百个历史任务文件夹，没有日期前缀时用户在 Finder / Obsidian 里根本分不清哪些是当天新做的。这条从 Step 1 建目录那一步就要执行，不是写完之后再补名字。
-
-| 文件 | 内容 | 何时生成 |
-| --- | --- | --- |
-| `full_transcript_en.txt` / `full_transcript_zh.txt` | 原始来源文本 | YouTube 必做;网页 / 本地文件按需(用户要求可追溯底稿时) |
-| `bilingual-transcript.md` | 英文原文 + 中文忠实译文 | 英文 YouTube 必做;用户要求忠实翻译时必做 |
-| `transcript.md` | 结构化工作底稿 | 所有来源必做 |
-| `background.md` | 人物、机构或事件背景 | 来源里有具体人物(嘉宾、作者),且其经历对理解观点是必要时生成;匿名文档 / 纯机构公告跳过 |
-| `article.md` | 最终公众号文章 | 所有来源必做 |
-| `title-options.md` | 3-5 个标题备选 | 定稿前生成,展示给用户挑选 |
-| `<VIDEO_ID>-frame-<MMSS>.jpg` | 视频截图 | 正文里出现「这张图 / 这段代码 / 屏幕上」等 deixis 指示语,且抽掉截图后段落看不懂时生成 |
-| `<日期>-<VIDEO_ID>-summary.html` / `summary.png` | 文章顶部摘要图(HTML 源 + 渲染截图) | 文章主题是方法论 / 工作流 / 分层结构 / 多阶段进阶,用一张图能概括全文骨架时生成 |
-| `cover.jpg` | 封面图 | 所有来源都做。Path A 抓现成图,Path B 用 HTML 模板生成 |
-
-如果当前目录已有同名文件且明显属于其他任务，使用来源 slug 前缀，例如 `mcp-future-article.md`。
-
-文章末尾必须注明来源。格式按类型选择：
-
-```markdown
-内容来源，[频道名称]「[视频标题]」，YouTube 链接 [URL]。
-内容来源，[作者]「[文章标题]」，原文链接 [URL]，发布于 [平台/媒体名称]。
-内容来源，[作者 / 机构]「[文档标题]」，[发布日期或版本号]。
-```
-
-默认不加「嘉宾为 X」。正文已经在开头交代过主讲人/嘉宾身份时，来源行重复一遍是冗余；只有当来源行是读者唯一能看到嘉宾身份的地方（正文完全没提名字）时才补一句，见 [title-and-publishing.md](references/title-and-publishing.md) §十一。
+完整重构至少验证本地化、长指南、中文改写、演示与教程取舍、归属与数字、受保护内容，以及标题确认的多轮交付。事实忠实、独立可理解、取舍和自然度分别判断，不合并为禁词数量或一个总分。记录测试版本、输入、结果与未验证范围。
