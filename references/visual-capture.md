@@ -126,7 +126,7 @@ ffmpeg -i viewport.png -vf "crop=1572:884:32:136" -frames:v 1 frame.jpg
 - `source_timestamp` 用视频秒数，非视频素材为 `null`。不能从文件名猜秒数。
 - `placement.relation` 为 `before`、`after` 或 `cover`；正文用唯一段落原文作 `anchor`，摘要可以定位到确认后的 H1。封面使用 `relation: "cover"`、`anchor: null`。编辑锚点文字后同步更新，不依赖会漂移的行号。
 - `verification.status` 为 `verified` 或 `pending`。记录核对了哪些内容；截图时间正确不足以设为 `verified`。
-- 原创 HTML 素材可增加 `generated_from` 指向 HTML 源；其 `source_url` 和 `source_timestamp` 为 `null`。封面另记 `article_title` 与 `cover_title`，见封面指南。
+- 原创素材可增加 `generated_from` 指向 HTML 源或生成提示词文件；其 `source_url` 和 `source_timestamp` 为 `null`。直接生成的位图可增加 `generator`、`original_path`、实际 `dimensions` 和 `transform`，仅记录实际工具与变换，不编造工具未返回的模型版本。封面另记 `article_title` 与 `cover_title`，见封面指南。
 
 Markdown 根据相对路径精确映射清单：
 
